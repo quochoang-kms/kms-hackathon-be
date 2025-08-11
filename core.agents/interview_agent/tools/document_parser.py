@@ -1,8 +1,27 @@
 import os
 import re
+import sys
 from typing import Optional
-from strands import tool
-from ..models import DocumentContent
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from strands import tool
+except ImportError:
+    # Fallback decorator if strands not available
+    def tool(func):
+        return func
+
+# Try to import DocumentContent, create fallback if not available
+try:
+    from base_models import DocumentContent
+except ImportError:
+    # Fallback DocumentContent class
+    class DocumentContent:
+        def __init__(self, content: str, file_type: str = "text"):
+            self.content = content
+            self.file_type = file_type
 
 try:
     import PyPDF2

@@ -1,7 +1,13 @@
 from strands import Agent
 from strands.models import BedrockModel
-from ..tools.document_parser import parse_pdf, parse_docx, parse_text_file
-from ..tools.content_analyzer import analyze_jd_content, analyze_cv_content
+
+# Fix imports for standalone execution
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from tools.document_parser import parse_pdf, parse_docx, parse_text_file
+from tools.content_analyzer import analyze_jd_content, analyze_cv_content
 
 
 class DocumentProcessorAgent:

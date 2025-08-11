@@ -1,6 +1,29 @@
 from strands import Agent
 from strands.models import BedrockModel
-from ..models import ExperienceLevel, InterviewRound
+
+# Fix imports for standalone execution
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from models import ExperienceLevel, InterviewRound
+except ImportError:
+    # Fallback definitions
+    from enum import Enum
+    
+    class ExperienceLevel(str, Enum):
+        JUNIOR = "Junior"
+        MID = "Mid"
+        SENIOR = "Senior"
+        LEAD = "Lead"
+        PRINCIPAL = "Principal"
+
+    class InterviewRound(int, Enum):
+        SCREENING = 1
+        TECHNICAL = 2
+        BEHAVIORAL = 3
+        FINAL = 4
 
 
 class AnswerGeneratorAgent:
