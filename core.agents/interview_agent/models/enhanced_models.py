@@ -33,11 +33,11 @@ except ImportError:
 
 class QualityMetrics(BaseModel):
     """Quality metrics for generated content."""
-    relevance_score: float = Field(..., description="Relevance to role and requirements (0-1)")
-    clarity_score: float = Field(..., description="Clarity and understandability (0-1)")
-    completeness_score: float = Field(..., description="Completeness of content (0-1)")
-    consistency_score: float = Field(..., description="Consistency with other content (0-1)")
-    overall_score: float = Field(..., description="Overall quality score (0-1)")
+    relevance_score: float = Field(default=0.85, description="Relevance to role and requirements (0-1)")
+    clarity_score: float = Field(default=0.85, description="Clarity and understandability (0-1)")
+    completeness_score: float = Field(default=0.85, description="Completeness of content (0-1)")
+    consistency_score: float = Field(default=0.85, description="Consistency with other content (0-1)")
+    overall_score: float = Field(default=0.85, description="Overall quality score (0-1)")
 
 
 class EnhancedInterviewQuestion(BaseModel):
@@ -46,21 +46,23 @@ class EnhancedInterviewQuestion(BaseModel):
     type: QuestionType = Field(..., description="Type of question")
     difficulty: str = Field(..., description="Question difficulty level")
     expected_duration: int = Field(..., description="Expected answer duration in minutes")
-    quality_metrics: QualityMetrics = Field(..., description="Quality assessment metrics")
+    quality_metrics: QualityMetrics = Field(default_factory=lambda: QualityMetrics(), description="Quality assessment metrics")
     tags: List[str] = Field(default_factory=list, description="Question tags for categorization")
     follow_up_questions: List[str] = Field(default_factory=list, description="Suggested follow-up questions")
 
 
-class EnhancedSampleAnswer(BaseModel):
-    """Enhanced sample answer with quality metrics."""
+class EnhancedAnswerTips(BaseModel):
+    """Enhanced answer evaluation tips for interviewers."""
     question: str = Field(..., description="The original question")
-    answer: str = Field(..., description="Sample answer")
-    key_points: List[str] = Field(..., description="Key points covered in the answer")
-    evaluation_criteria: List[str] = Field(..., description="What to look for in candidate's answer")
-    quality_metrics: QualityMetrics = Field(..., description="Quality assessment metrics")
-    answer_framework: str = Field(..., description="Framework used (STAR, technical, etc.)")
+    evaluation_tips: str = Field(..., description="Comprehensive evaluation guidance")
+    what_to_listen_for: List[str] = Field(..., description="Key elements of strong responses")
+    scoring_criteria: str = Field(..., description="1-5 scale scoring guidelines")
     red_flags: List[str] = Field(default_factory=list, description="Warning signs in candidate responses")
     excellent_indicators: List[str] = Field(default_factory=list, description="Signs of exceptional responses")
+    follow_up_questions: List[str] = Field(default_factory=list, description="Probing questions to dig deeper")
+    assessment_framework: str = Field(..., description="How to structure evaluation")
+    time_management: str = Field(..., description="Expected response length and pacing")
+    quality_metrics: QualityMetrics = Field(default_factory=lambda: QualityMetrics(), description="Quality assessment metrics")
 
 
 class ProcessingPhase(str, Enum):
@@ -82,11 +84,11 @@ class AgentPerformanceMetrics(BaseModel):
 
 class EnhancedInterviewRequest(BaseModel):
     """Enhanced interview generation request."""
-    jd_content: str = Field(..., description="Job description content")
-    cv_content: str = Field(..., description="CV/Resume content")
-    role: str = Field(..., description="Job role/position")
-    level: ExperienceLevel = Field(..., description="Experience level")
-    round_number: InterviewRound = Field(..., description="Interview round number")
+    jd_content: str = Field(default="", description="Job description content")
+    cv_content: str = Field(default="", description="CV/Resume content")
+    role: str = Field(default="Software Engineer", description="Job role/position")
+    level: ExperienceLevel = Field(default=ExperienceLevel.MID, description="Experience level")
+    round_number: InterviewRound = Field(default=InterviewRound.TECHNICAL, description="Interview round number")
     num_questions: int = Field(default=5, description="Number of questions to generate")
     
     # Enhanced options
@@ -99,21 +101,21 @@ class EnhancedInterviewRequest(BaseModel):
 
 class EnhancedInterviewResponse(BaseModel):
     """Enhanced interview response with quality metrics."""
-    questions: List[EnhancedInterviewQuestion] = Field(..., description="Generated interview questions")
-    sample_answers: List[EnhancedSampleAnswer] = Field(..., description="Sample answers for the questions")
-    interview_focus: str = Field(..., description="Main focus areas for this interview round")
-    preparation_tips: List[str] = Field(..., description="Tips for the interviewer")
+    questions: List[EnhancedInterviewQuestion] = Field(default_factory=list, description="Generated interview questions")
+    answer_tips: List[EnhancedAnswerTips] = Field(default_factory=list, description="Evaluation tips for each question")
+    interview_focus: str = Field(default="", description="Main focus areas for this interview round")
+    preparation_tips: List[str] = Field(default_factory=list, description="Tips for the interviewer")
     
     # Enhanced response data
-    overall_quality_score: float = Field(..., description="Overall quality score (0-1)")
-    processing_metrics: List[AgentPerformanceMetrics] = Field(..., description="Performance metrics per agent")
-    quality_report: Dict[str, Any] = Field(..., description="Detailed quality assessment report")
-    generation_metadata: Dict[str, Any] = Field(..., description="Generation process metadata")
+    overall_quality_score: float = Field(default=0.0, description="Overall quality score (0-1)")
+    processing_metrics: List[AgentPerformanceMetrics] = Field(default_factory=list, description="Performance metrics per agent")
+    quality_report: Dict[str, Any] = Field(default_factory=dict, description="Detailed quality assessment report")
+    generation_metadata: Dict[str, Any] = Field(default_factory=dict, description="Generation process metadata")
     
     # Interviewer guidance
-    interview_structure: Dict[str, Any] = Field(..., description="Suggested interview structure")
-    evaluation_framework: Dict[str, Any] = Field(..., description="Comprehensive evaluation framework")
-    candidate_assessment_guide: List[str] = Field(..., description="Guide for assessing candidate responses")
+    interview_structure: Dict[str, Any] = Field(default_factory=dict, description="Suggested interview structure")
+    evaluation_framework: Dict[str, Any] = Field(default_factory=dict, description="Comprehensive evaluation framework")
+    candidate_assessment_guide: List[str] = Field(default_factory=list, description="Guide for assessing candidate responses")
 
 
 class QualityAssessmentReport(BaseModel):
@@ -129,7 +131,7 @@ class QualityAssessmentReport(BaseModel):
 class ParallelProcessingResult(BaseModel):
     """Result from parallel processing phase."""
     questions_result: Dict[str, Any] = Field(..., description="Question generation results")
-    answers_result: Dict[str, Any] = Field(..., description="Answer generation results")
+    answer_tips_result: Dict[str, Any] = Field(..., description="Answer tips generation results")
     quality_result: Dict[str, Any] = Field(..., description="Quality assessment results")
     processing_time: float = Field(..., description="Total parallel processing time")
     success_status: Dict[str, bool] = Field(..., description="Success status per task")

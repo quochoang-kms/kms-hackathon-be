@@ -57,7 +57,7 @@ except ImportError:
         class EnhancedInterviewResponse:
             def __init__(self):
                 self.questions = []
-                self.sample_answers = []
+                self.answer_tips = []
                 self.overall_quality_score = 0.0
 
 # Import enhanced coordinator with fallback

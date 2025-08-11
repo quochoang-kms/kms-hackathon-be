@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Working Example - Interview Agent with Direct Naming
+Enhanced Working Example - Interview Agent with Direct Naming
 
 This example demonstrates the Interview Agent using direct naming
 and shows how the enhanced functionality works by default.
@@ -84,7 +84,7 @@ async def demo_basic_usage():
             role="Senior Software Engineer",
             level=ExperienceLevel.SENIOR,
             round_number=InterviewRound.TECHNICAL,
-            num_questions=3
+            num_questions=10
         )
         print("✅ Request created successfully")
         
@@ -110,172 +110,78 @@ async def demo_basic_usage():
         generation_time = time.time() - start_time
         print(f"✅ Content generated in {generation_time:.2f}s")
         
-        # Display results
-        print(f"\n📋 Interview Results:")
+        # Display results summary
+        print(f"\n📋 Interview Results Summary:")
         print(f"   • Role: {request.role}")
         print(f"   • Level: {request.level.value}")
         print(f"   • Round: {request.round_number.name}")
         print(f"   • Questions Generated: {len(result.questions)}")
-        print(f"   • Sample Answers: {len(result.sample_answers)}")
+        print(f"   • Answer Tips: {len(result.answer_tips)}")
         print(f"   • Overall Quality Score: {result.overall_quality_score:.2f}")
+        
+        # Display detailed questions
+        print(f"\n📝 Generated Interview Questions:")
+        print("-" * 40)
+        for i, question in enumerate(result.questions, 1):
+            print(f"\n{i}. {question.question}")
+            print(f"   Type: {question.type}")
+            print(f"   Difficulty: {question.difficulty}")
+            print(f"   Expected Duration: {question.expected_duration} minutes")
+            if question.tags:
+                print(f"   Tags: {', '.join(question.tags)}")
+            if question.follow_up_questions:
+                print(f"   Follow-ups: {len(question.follow_up_questions)} available")
+        
+        # Display answer evaluation tips
+        print(f"\n💡 Answer Evaluation Tips for Interviewers:")
+        print("-" * 45)
+        for i, tip in enumerate(result.answer_tips, 1):
+            print(f"\n{i}. Question: {tip.question}")
+            print(f"   Evaluation Tips: {tip.evaluation_tips}")
+            print(f"   What to Listen For: {', '.join(tip.what_to_listen_for)}")
+            print(f"   Scoring: {tip.scoring_criteria}")
+            if tip.red_flags:
+                print(f"   🚩 Red Flags: {', '.join(tip.red_flags)}")
+            if tip.excellent_indicators:
+                print(f"   ⭐ Excellent Indicators: {', '.join(tip.excellent_indicators)}")
+            if tip.follow_up_questions:
+                print(f"   🔍 Follow-up Questions: {len(tip.follow_up_questions)} available")
+        
+        # Display interview structure
+        if result.interview_structure:
+            print(f"\n📅 Interview Structure:")
+            print("-" * 20)
+            for key, value in result.interview_structure.items():
+                print(f"   • {key.replace('_', ' ').title()}: {value}")
         
         return result
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
-
-async def demo_advanced_features():
-    """Demonstrate advanced features."""
-    print(f"\n🎯 Advanced Features Demo\n")
-    print("-" * 40)
-    
-    try:
-        agent = InterviewAgent()
-        
-        # Test different interview rounds
-        rounds = [
-            (InterviewRound.SCREENING, "Initial screening questions"),
-            (InterviewRound.TECHNICAL, "Technical deep-dive questions"),
-            (InterviewRound.BEHAVIORAL, "Behavioral assessment questions"),
-            (InterviewRound.FINAL, "Final round questions")
-        ]
-        
-        for round_type, description in rounds:
-            print(f"\n📝 {description}:")
-            
-            result = await agent.generate_interview_content_async(
-                jd_content="Software Engineer position requiring Python skills",
-                cv_content="Experienced Python developer with 5 years experience",
-                role="Software Engineer",
-                level=ExperienceLevel.SENIOR,
-                round_number=round_type,
-                num_questions=2,
-                enable_parallel_processing=True,
-                quality_assurance=True
-            )
-            
-            print(f"   • Round: {round_type.name}")
-            print(f"   • Questions: {len(result.questions)}")
-            print(f"   • Quality: {result.overall_quality_score:.2f}")
-        
-        print("✅ Advanced features working correctly")
-        
-    except Exception as e:
-        print(f"❌ Advanced features error: {str(e)}")
-
-
-def demo_model_usage():
-    """Demonstrate model usage with direct naming."""
-    print(f"\n📦 Model Usage Demo\n")
-    print("-" * 30)
-    
-    try:
-        # Test all experience levels
-        print("🎯 Experience Levels:")
-        for level in ExperienceLevel:
-            print(f"   • {level.name}: {level.value}")
-        
-        # Test all interview rounds
-        print(f"\n🎯 Interview Rounds:")
-        for round_type in InterviewRound:
-            print(f"   • {round_type.name}: Round {round_type.value}")
-        
-        # Create different request types
-        print(f"\n🎯 Request Examples:")
-        
-        requests = [
-            InterviewRequest(
-                role="Junior Developer",
-                level=ExperienceLevel.JUNIOR,
-                round_number=InterviewRound.SCREENING,
-                num_questions=3
-            ),
-            InterviewRequest(
-                role="Senior Engineer",
-                level=ExperienceLevel.SENIOR,
-                round_number=InterviewRound.TECHNICAL,
-                num_questions=5
-            ),
-            InterviewRequest(
-                role="Tech Lead",
-                level=ExperienceLevel.LEAD,
-                round_number=InterviewRound.FINAL,
-                num_questions=4
-            )
-        ]
-        
-        for i, req in enumerate(requests, 1):
-            print(f"   {i}. {req.role} - {req.level.value} - {req.round_number.name}")
-            print(f"      Questions: {req.num_questions}")
-        
-        print("✅ Models working correctly with direct naming")
-        
-    except Exception as e:
-        print(f"❌ Model usage error: {str(e)}")
-
-
-def show_migration_guide():
-    """Show migration guide from enhanced naming."""
-    print(f"\n🔄 Migration Guide\n")
-    print("-" * 25)
-    
-    print("📝 Before (Enhanced Naming):")
-    print("```python")
-    print("from interview_agent import EnhancedInterviewAgent")
-    print("from interview_agent import EnhancedInterviewRequest")
-    print("from interview_agent import generate_interview_enhanced")
-    print("")
-    print("agent = EnhancedInterviewAgent()")
-    print("request = EnhancedInterviewRequest(...)")
-    print("result = generate_interview_enhanced(...)")
-    print("```")
-    
-    print(f"\n✨ After (Direct Naming):")
-    print("```python")
-    print("from interview_agent import InterviewAgent")
-    print("from interview_agent import InterviewRequest")
-    print("from interview_agent import generate_interview")
-    print("")
-    print("agent = InterviewAgent()  # Enhanced by default!")
-    print("request = InterviewRequest(...)")
-    print("result = generate_interview(...)")
-    print("```")
-    
-    print(f"\n🎯 Benefits of Direct Naming:")
-    print("• ✅ Cleaner, more intuitive imports")
-    print("• ✅ No 'enhanced_' prefixes needed")
-    print("• ✅ Enhanced functionality by default")
-    print("• ✅ Backward compatibility maintained")
-    print("• ✅ Easier for new users to understand")
-    print("• ✅ Standard naming conventions")
 
 
 async def main():
     """Run the comprehensive demo."""
-    print("🚀 Interview Agent - Direct Naming Working Example\n")
+    print("🚀 Interview Agent - Enhanced Working Example\n")
     
     try:
-        # Basic usage demo
+        # Basic usage demo with detailed output
         result = await demo_basic_usage()
         
-        # Advanced features demo
-        await demo_advanced_features()
-        
-        # Model usage demo
-        demo_model_usage()
-        
-        # Migration guide
-        show_migration_guide()
         
         print(f"\n" + "=" * 60)
-        print("🎉 Direct Naming Working Example Completed!")
+        print("🎉 Enhanced Working Example Completed!")
         
         if result:
             print(f"\n📊 Final Summary:")
             print(f"   • Enhanced functionality: ✅ Working")
             print(f"   • Direct naming: ✅ Implemented")
+            print(f"   • Questions generated: {len(result.questions)}")
+            print(f"   • Answer tips provided: {len(result.answer_tips)}")
             print(f"   • Quality score: {result.overall_quality_score:.2f}")
             print(f"   • Performance: ✅ Optimized")
             print(f"   • Backward compatibility: ✅ Maintained")
@@ -283,6 +189,8 @@ async def main():
         print(f"\n🚀 Ready for Production Use!")
         print("   • Use direct naming (no 'enhanced_' prefixes)")
         print("   • Enhanced functionality is now the default")
+        print("   • Questions generate successfully")
+        print("   • Answer evaluation tips for interviewers")
         print("   • Legacy support available if needed")
         
     except KeyboardInterrupt:

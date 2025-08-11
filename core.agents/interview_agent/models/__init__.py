@@ -5,35 +5,41 @@ from .enhanced_models import (
     QualityMetrics, 
     AgentPerformanceMetrics, 
     EnhancedInterviewQuestion as InterviewQuestion, 
-    EnhancedSampleAnswer as SampleAnswer,
+    EnhancedAnswerTips as AnswerTips,
     ExperienceLevel,
     InterviewRound,
     QuestionType
 )
 
-# Legacy imports
+# Legacy imports and backward compatibility
 from .enhanced_models import (
     EnhancedInterviewRequest, 
     EnhancedInterviewResponse,
     EnhancedInterviewQuestion, 
-    EnhancedSampleAnswer
+    EnhancedAnswerTips
 )
+
+# Backward compatibility aliases
+SampleAnswer = EnhancedAnswerTips  # For backward compatibility
+EnhancedSampleAnswer = EnhancedAnswerTips  # For backward compatibility
 
 __all__ = [
     # Default (enhanced) exports
     "InterviewRequest", 
     "InterviewResponse",
     "InterviewQuestion", 
-    "SampleAnswer",
+    "AnswerTips",
     "QualityMetrics", 
     "AgentPerformanceMetrics",
     "ExperienceLevel", 
     "InterviewRound", 
     "QuestionType",
     
-    # Legacy exports
+    # Legacy exports and backward compatibility
     "EnhancedInterviewRequest", 
     "EnhancedInterviewResponse",
     "EnhancedInterviewQuestion", 
-    "EnhancedSampleAnswer"
+    "EnhancedAnswerTips",
+    "SampleAnswer",  # Backward compatibility alias
+    "EnhancedSampleAnswer"  # Backward compatibility alias
 ]

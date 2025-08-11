@@ -39,12 +39,12 @@ except ImportError:
                 pass
 
 try:
-    from .answer_generator import AnswerGeneratorAgent
+    from .answer_tips_generator import AnswerTipsGeneratorAgent
 except ImportError:
     try:
-        from answer_generator import AnswerGeneratorAgent
+        from answer_tips_generator import AnswerTipsGeneratorAgent
     except ImportError:
-        class AnswerGeneratorAgent:
+        class AnswerTipsGeneratorAgent:
             def __init__(self, *args, **kwargs):
                 pass
 
@@ -90,7 +90,7 @@ __all__ = [
     "CoordinatorAgent",
     "DocumentProcessorAgent",
     "QuestionGeneratorAgent", 
-    "AnswerGeneratorAgent",
+    "AnswerTipsGeneratorAgent",
     "QualityAssuranceAgent",
     "FormatterAgent",
     
