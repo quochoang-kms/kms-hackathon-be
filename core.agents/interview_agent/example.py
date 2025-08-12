@@ -1,205 +1,410 @@
-#!/usr/bin/env python3
-"""
-Enhanced Working Example - Interview Agent with Direct Naming
+"""Example usage and demonstrations of the Interview Preparation System"""
 
-This example demonstrates the Interview Agent using direct naming
-and shows how the enhanced functionality works by default.
-"""
-
+import os
 import asyncio
 import time
-import sys
-import os
+from dotenv import load_dotenv
+from agents import InterviewPreparationSystem
 
-# Add current directory to Python path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, current_dir)
+# Load environment variables
+load_dotenv()
 
-# Import using direct names (enhanced functionality by default)
-from main import InterviewAgent, generate_interview, InterviewRequest, InterviewResponse
-from models import ExperienceLevel, InterviewRound
+# Sample data for testing
+SAMPLE_JD_TEXT = """
+Senior Data Scientist Position
 
+We are seeking a Senior Data Scientist to join our AI/ML team.
 
-async def demo_basic_usage():
-    """Demonstrate basic usage with direct naming."""
-    print("🚀 Basic Usage Demo\n")
-    print("=" * 50)
+Required Skills:
+- 5+ years of experience in data science and machine learning
+- Strong programming skills in Python and R
+- Experience with ML frameworks (TensorFlow, PyTorch, Scikit-learn)
+- Statistical analysis and hypothesis testing
+- Data visualization and storytelling
+- Experience with big data technologies (Spark, Hadoop)
+
+Preferred Skills:
+- PhD in Computer Science, Statistics, or related field
+- Experience with deep learning and neural networks
+- Cloud platforms (AWS, GCP, Azure)
+- MLOps and model deployment
+- Leadership and mentoring experience
+
+Responsibilities:
+- Lead data science projects from conception to deployment
+- Mentor junior data scientists
+- Collaborate with engineering teams on model implementation
+- Present findings to stakeholders and executives
+"""
+
+SAMPLE_CV_TEXT = """
+Dr. Emily Chen
+Senior Data Scientist
+
+Education:
+- PhD in Computer Science, MIT (2018)
+- MS in Statistics, Stanford University (2014)
+- BS in Mathematics, UC Berkeley (2012)
+
+Experience:
+- Senior Data Scientist, DataTech Inc. (2020-Present)
+  * Led ML initiatives for recommendation systems serving 10M+ users
+  * Improved model accuracy by 25% using ensemble methods
+  * Mentored team of 4 junior data scientists
+  * Deployed models to production using MLflow and Kubernetes
+
+- Data Scientist, AI Startup (2018-2020)
+  * Built predictive models for customer churn (95% accuracy)
+  * Implemented A/B testing framework
+  * Developed data pipelines using Apache Spark
+
+- Research Assistant, MIT AI Lab (2014-2018)
+  * Published 8 papers in top-tier ML conferences
+  * Developed novel deep learning architectures
+  * Collaborated with industry partners on research projects
+
+Skills:
+- Programming: Python, R, SQL, Scala
+- ML/AI: TensorFlow, PyTorch, Scikit-learn, XGBoost
+- Big Data: Spark, Hadoop, Kafka
+- Cloud: AWS (SageMaker, EC2, S3), GCP
+- Visualization: Matplotlib, Seaborn, Tableau
+- Leadership: Team management, technical mentoring
+"""
+
+async def run_comprehensive_examples():
+    """Run comprehensive examples covering all scenarios"""
     
-    # Sample data
-    jd_content = """
-    Senior Software Engineer - Backend Systems
+    system = InterviewPreparationSystem(
+        model_id=os.getenv('MODEL_ID'),
+        region=os.getenv('REGION')
+    )
     
-    We are looking for a Senior Software Engineer to join our backend team.
-    
-    Requirements:
-    - 5+ years of software development experience
-    - Strong proficiency in Python, Java, or Go
-    - Experience with microservices architecture
-    - Knowledge of cloud platforms (AWS, GCP, Azure)
-    - Experience with databases (SQL and NoSQL)
-    - Understanding of system design principles
-    
-    Responsibilities:
-    - Design and implement scalable backend services
-    - Collaborate with cross-functional teams
-    - Mentor junior developers
-    - Participate in code reviews and architecture discussions
-    """
-    
-    cv_content = """
-    John Doe - Senior Software Engineer
-    
-    Professional Experience:
-    
-    2019-2024: Senior Software Engineer at TechCorp
-    - Led development of microservices platform serving 10M+ users
-    - Implemented event-driven architecture using Apache Kafka
-    - Reduced system latency by 40% through optimization
-    - Mentored 3 junior developers
-    
-    2017-2019: Software Engineer at StartupXYZ
-    - Built REST APIs using Python Flask and PostgreSQL
-    - Implemented CI/CD pipelines using Jenkins and Docker
-    - Collaborated with frontend team on API design
-    
-    Technical Skills:
-    - Languages: Python, Java, Go, JavaScript
-    - Frameworks: Django, Flask, Spring Boot
-    - Databases: PostgreSQL, MongoDB, Redis
-    - Cloud: AWS (EC2, S3, RDS, Lambda)
-    - Tools: Docker, Kubernetes, Jenkins
-    """
-    
-    try:
-        # Create interview agent (enhanced by default)
-        print("🔧 Creating Interview Agent...")
-        agent = InterviewAgent()
-        print(f"✅ Agent created: {type(agent).__name__}")
+    # Test scenarios covering all levels, rounds, and personas
+    test_scenarios = [
+        # Junior level scenarios
+        {
+            "name": "Junior Developer - Screening (Friendly)",
+            "level": "Junior",
+            "round": 1,
+            "persona": "Friendly",
+            "jd": "Entry-level Software Developer position requiring basic programming skills in Python or Java.",
+            "cv": "Recent CS graduate with internship experience and personal projects in web development."
+        },
+        {
+            "name": "Junior Developer - Technical (Serious)",
+            "level": "Junior", 
+            "round": 2,
+            "persona": "Serious",
+            "jd": "Junior Software Engineer role focusing on web development and database skills.",
+            "cv": "1 year experience as junior developer, worked on CRUD applications and basic APIs."
+        },
         
-        # Create interview request using direct naming
-        print("\n📝 Creating Interview Request...")
-        request = InterviewRequest(
-            jd_content=jd_content,
-            cv_content=cv_content,
-            role="Senior Software Engineer",
-            level=ExperienceLevel.SENIOR,
-            round_number=InterviewRound.TECHNICAL,
-            num_questions=10
-        )
-        print("✅ Request created successfully")
+        # Mid level scenarios
+        {
+            "name": "Mid-level Engineer - Behavioral (Collaborative)",
+            "level": "Mid",
+            "round": 3,
+            "persona": "Collaborative",
+            "jd": "Mid-level Software Engineer with 3-5 years experience in full-stack development.",
+            "cv": "4 years experience, led small projects, mentored interns, full-stack development."
+        },
         
-        # Generate interview content
-        print("\n🚀 Generating Interview Content...")
-        print("   📊 Using enhanced parallel processing...")
+        # Senior level scenarios
+        {
+            "name": "Senior Data Scientist - Technical (Analytical)",
+            "level": "Senior",
+            "round": 2,
+            "persona": "Analytical",
+            "jd": SAMPLE_JD_TEXT,
+            "cv": SAMPLE_CV_TEXT
+        },
+        {
+            "name": "Senior Engineer - Final (Challenging)",
+            "level": "Senior",
+            "round": 4,
+            "persona": "Challenging",
+            "jd": "Senior Software Architect role requiring system design and team leadership.",
+            "cv": "8 years experience, system architect, led teams of 10+, designed scalable systems."
+        },
+        
+        # Lead level scenarios
+        {
+            "name": "Lead Engineer - Screening (Friendly)",
+            "level": "Lead",
+            "round": 1,
+            "persona": "Friendly",
+            "jd": "Engineering Lead position managing multiple teams and technical strategy.",
+            "cv": "10 years experience, managed 20+ engineers, drove technical vision, P&L responsibility."
+        },
+        
+        # Principal level scenarios
+        {
+            "name": "Principal Engineer - Final (Analytical)",
+            "level": "Principal",
+            "round": 4,
+            "persona": "Analytical",
+            "jd": "Principal Engineer role setting technical direction for the entire organization.",
+            "cv": "15+ years experience, CTO at startup, technical thought leader, industry speaker."
+        }
+    ]
+    
+    results = []
+    
+    print("🚀 Running Comprehensive Interview Preparation Examples")
+    print("=" * 80)
+    
+    for i, scenario in enumerate(test_scenarios, 1):
+        print(f"\n📋 Scenario {i}/{len(test_scenarios)}: {scenario['name']}")
+        print("-" * 60)
         
         start_time = time.time()
         
-        # Use the enhanced async method
-        result = await agent.generate_interview_content_async(
-            jd_content=request.jd_content,
-            cv_content=request.cv_content,
-            role=request.role,
-            level=request.level,
-            round_number=request.round_number,
-            num_questions=request.num_questions,
-            enable_parallel_processing=True,
-            quality_assurance=True,
-            include_follow_ups=True
-        )
+        try:
+            result = await system.prepare_interview(
+                jd=scenario["jd"],
+                cv=scenario["cv"],
+                role="Software Engineer",  # Default role
+                level=scenario["level"],
+                round_number=scenario["round"],
+                interview_persona=scenario["persona"]
+            )
+            
+            end_time = time.time()
+            processing_time = end_time - start_time
+            
+            if result.get("status") == "completed":
+                print(f"✅ Success! (Processing time: {processing_time:.2f}s)")
+                
+                # Extract key metrics
+                metadata = result.get("metadata", {})
+                analysis = result.get("analysis_results", {})
+                interview_prep = result.get("interview_preparation", {})
+                
+                skills_matching = analysis.get("skills_matching", {})
+                match_score = skills_matching.get("overall_match_score", 0)
+                question_count = interview_prep.get("total_questions", 0)
+                
+                print(f"   📊 Match Score: {match_score}%")
+                print(f"   ❓ Questions Generated: {question_count}")
+                print(f"   🎯 Strong Areas: {len(skills_matching.get('strong_areas', []))}")
+                print(f"   ⚠️  Missing Skills: {len(skills_matching.get('missing_skills', []))}")
+                
+                # Show sample questions
+                questions = interview_prep.get("questions", [])[:2]
+                if questions:
+                    print(f"   📝 Sample Questions:")
+                    for j, q in enumerate(questions, 1):
+                        print(f"      {j}. {q.get('text', '')[:80]}...")
+                        print(f"         Type: {q.get('question_type')} | Difficulty: {q.get('difficulty_level')}/5")
+                
+                results.append({
+                    "scenario": scenario["name"],
+                    "status": "success",
+                    "processing_time": processing_time,
+                    "match_score": match_score,
+                    "question_count": question_count
+                })
+                
+            else:
+                print(f"❌ Failed: {result.get('error', 'Unknown error')}")
+                results.append({
+                    "scenario": scenario["name"],
+                    "status": "failed",
+                    "error": result.get('error', 'Unknown error')
+                })
+                
+        except Exception as e:
+            print(f"❌ Exception: {str(e)}")
+            results.append({
+                "scenario": scenario["name"],
+                "status": "exception",
+                "error": str(e)
+            })
+    
+    # Print summary
+    print("\n" + "=" * 80)
+    print("📊 EXECUTION SUMMARY")
+    print("=" * 80)
+    
+    successful = [r for r in results if r["status"] == "success"]
+    failed = [r for r in results if r["status"] != "success"]
+    
+    print(f"✅ Successful scenarios: {len(successful)}/{len(results)}")
+    print(f"❌ Failed scenarios: {len(failed)}/{len(results)}")
+    
+    if successful:
+        avg_time = sum(r["processing_time"] for r in successful) / len(successful)
+        avg_match_score = sum(r["match_score"] for r in successful) / len(successful)
+        avg_questions = sum(r["question_count"] for r in successful) / len(successful)
         
-        generation_time = time.time() - start_time
-        print(f"✅ Content generated in {generation_time:.2f}s")
-        
-        # Display results summary
-        print(f"\n📋 Interview Results Summary:")
-        print(f"   • Role: {request.role}")
-        print(f"   • Level: {request.level.value}")
-        print(f"   • Round: {request.round_number.name}")
-        print(f"   • Questions Generated: {len(result.questions)}")
-        print(f"   • Answer Tips: {len(result.answer_tips)}")
-        print(f"   • Overall Quality Score: {result.overall_quality_score:.2f}")
-        
-        # Display detailed questions
-        print(f"\n📝 Generated Interview Questions:")
-        print("-" * 40)
-        for i, question in enumerate(result.questions, 1):
-            print(f"\n{i}. {question.question}")
-            print(f"   Type: {question.type}")
-            print(f"   Difficulty: {question.difficulty}")
-            print(f"   Expected Duration: {question.expected_duration} minutes")
-            if question.tags:
-                print(f"   Tags: {', '.join(question.tags)}")
-            if question.follow_up_questions:
-                print(f"   Follow-ups: {len(question.follow_up_questions)} available")
-        
-        # Display answer evaluation tips
-        print(f"\n💡 Answer Evaluation Tips for Interviewers:")
-        print("-" * 45)
-        for i, tip in enumerate(result.answer_tips, 1):
-            print(f"\n{i}. Question: {tip.question}")
-            print(f"   Evaluation Tips: {tip.evaluation_tips}")
-            print(f"   What to Listen For: {', '.join(tip.what_to_listen_for)}")
-            print(f"   Scoring: {tip.scoring_criteria}")
-            if tip.red_flags:
-                print(f"   🚩 Red Flags: {', '.join(tip.red_flags)}")
-            if tip.excellent_indicators:
-                print(f"   ⭐ Excellent Indicators: {', '.join(tip.excellent_indicators)}")
-            if tip.follow_up_questions:
-                print(f"   🔍 Follow-up Questions: {len(tip.follow_up_questions)} available")
-        
-        # Display interview structure
-        if result.interview_structure:
-            print(f"\n📅 Interview Structure:")
-            print("-" * 20)
-            for key, value in result.interview_structure.items():
-                print(f"   • {key.replace('_', ' ').title()}: {value}")
-        
-        return result
-        
-    except Exception as e:
-        print(f"❌ Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None
+        print(f"\n📈 Performance Metrics (Successful scenarios):")
+        print(f"   ⏱️  Average Processing Time: {avg_time:.2f}s")
+        print(f"   🎯 Average Match Score: {avg_match_score:.1f}%")
+        print(f"   ❓ Average Questions Generated: {avg_questions:.1f}")
+    
+    if failed:
+        print(f"\n❌ Failed Scenarios:")
+        for result in failed:
+            print(f"   - {result['scenario']}: {result.get('error', 'Unknown error')}")
+    
+    return results
 
-
-
-async def main():
-    """Run the comprehensive demo."""
-    print("🚀 Interview Agent - Enhanced Working Example\n")
+async def run_file_input_examples():
+    """Demonstrate file input capabilities"""
+    print("\n" + "=" * 80)
+    print("📁 FILE INPUT EXAMPLES")
+    print("=" * 80)
+    
+    # Create sample files for testing
+    sample_files_dir = "sample_files"
+    os.makedirs(sample_files_dir, exist_ok=True)
+    
+    # Create sample JD file
+    jd_file_path = os.path.join(sample_files_dir, "sample_jd.txt")
+    with open(jd_file_path, "w") as f:
+        f.write(SAMPLE_JD_TEXT)
+    
+    # Create sample CV file
+    cv_file_path = os.path.join(sample_files_dir, "sample_cv.txt")
+    with open(cv_file_path, "w") as f:
+        f.write(SAMPLE_CV_TEXT)
+    
+    print(f"📄 Created sample files:")
+    print(f"   - JD: {jd_file_path}")
+    print(f"   - CV: {cv_file_path}")
+    
+    # Test file input
+    system = InterviewPreparationSystem(
+        model_id=os.getenv('MODEL_ID'),
+        region=os.getenv('REGION')
+    )
+    
+    print(f"\n🔄 Testing file input processing...")
     
     try:
-        # Basic usage demo with detailed output
-        result = await demo_basic_usage()
+        result = await system.prepare_interview(
+            jd=jd_file_path,  # File path input
+            cv=cv_file_path,  # File path input
+            role="Data Scientist",
+            level="Senior",
+            round_number=2,
+            interview_persona="Analytical"
+        )
         
-        
-        print(f"\n" + "=" * 60)
-        print("🎉 Enhanced Working Example Completed!")
-        
-        if result:
-            print(f"\n📊 Final Summary:")
-            print(f"   • Enhanced functionality: ✅ Working")
-            print(f"   • Direct naming: ✅ Implemented")
-            print(f"   • Questions generated: {len(result.questions)}")
-            print(f"   • Answer tips provided: {len(result.answer_tips)}")
-            print(f"   • Quality score: {result.overall_quality_score:.2f}")
-            print(f"   • Performance: ✅ Optimized")
-            print(f"   • Backward compatibility: ✅ Maintained")
-        
-        print(f"\n🚀 Ready for Production Use!")
-        print("   • Use direct naming (no 'enhanced_' prefixes)")
-        print("   • Enhanced functionality is now the default")
-        print("   • Questions generate successfully")
-        print("   • Answer evaluation tips for interviewers")
-        print("   • Legacy support available if needed")
-        
-    except KeyboardInterrupt:
-        print("\n\n⏹️  Demo interrupted by user")
+        if result.get("status") == "completed":
+            print("✅ File input processing successful!")
+            
+            # Show parsing metadata
+            analysis = result.get("analysis_results", {})
+            print(f"   📊 JD Skills Identified: {len(analysis.get('jd_analysis', {}).get('required_skills', []))}")
+            print(f"   📊 CV Skills Identified: {len(analysis.get('cv_analysis', {}).get('technical_skills', []))}")
+            
+        else:
+            print(f"❌ File input processing failed: {result.get('error')}")
+            
     except Exception as e:
-        print(f"\n❌ Demo error: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ File input test failed: {str(e)}")
+    
+    # Cleanup
+    try:
+        os.remove(jd_file_path)
+        os.remove(cv_file_path)
+        os.rmdir(sample_files_dir)
+        print(f"🧹 Cleaned up sample files")
+    except:
+        pass
 
+async def performance_benchmark():
+    """Run performance benchmarks"""
+    print("\n" + "=" * 80)
+    print("⚡ PERFORMANCE BENCHMARK")
+    print("=" * 80)
+    
+    system = InterviewPreparationSystem(
+        model_id=os.getenv('MODEL_ID'),
+        region=os.getenv('REGION')
+    )
+    
+    # Simple benchmark scenario
+    benchmark_jd = "Software Engineer position requiring Python, JavaScript, and database skills."
+    benchmark_cv = "3 years experience in full-stack development with Python, React, and PostgreSQL."
+    
+    times = []
+    
+    print("🏃 Running 3 benchmark iterations...")
+    
+    for i in range(3):
+        print(f"   Iteration {i+1}/3...", end=" ")
+        
+        start_time = time.time()
+        
+        try:
+            result = await system.prepare_interview(
+                jd=benchmark_jd,
+                cv=benchmark_cv,
+                role="Software Engineer",
+                level="Mid",
+                round_number=2,
+                interview_persona="Friendly"
+            )
+            
+            end_time = time.time()
+            processing_time = end_time - start_time
+            times.append(processing_time)
+            
+            if result.get("status") == "completed":
+                print(f"✅ {processing_time:.2f}s")
+            else:
+                print(f"❌ Failed")
+                
+        except Exception as e:
+            print(f"❌ Error: {str(e)}")
+    
+    if times:
+        avg_time = sum(times) / len(times)
+        min_time = min(times)
+        max_time = max(times)
+        
+        print(f"\n📊 Benchmark Results:")
+        print(f"   ⏱️  Average Time: {avg_time:.2f}s")
+        print(f"   🚀 Fastest Time: {min_time:.2f}s")
+        print(f"   🐌 Slowest Time: {max_time:.2f}s")
+        
+        # Performance assessment
+        if avg_time <= 30:
+            print("   🎯 Performance: Excellent (≤30s)")
+        elif avg_time <= 45:
+            print("   ⚠️  Performance: Good (≤45s)")
+        else:
+            print("   🔴 Performance: Needs improvement (>45s)")
+
+async def main():
+    """Main example function"""
+    print("🎯 Interview Preparation System - Comprehensive Examples")
+    print("=" * 80)
+    
+    # Check environment
+    if not os.getenv('MODEL_ID') or not os.getenv('REGION'):
+        print("❌ Missing environment variables. Please set MODEL_ID and REGION in .env file")
+        return
+    
+    try:
+        # Run comprehensive examples
+        await run_comprehensive_examples()
+        
+        # Run file input examples
+        await run_file_input_examples()
+        
+        # Run performance benchmark
+        await performance_benchmark()
+        
+        print("\n" + "=" * 80)
+        print("🎉 All examples completed successfully!")
+        print("=" * 80)
+        
+    except Exception as e:
+        print(f"\n❌ Examples failed: {str(e)}")
 
 if __name__ == "__main__":
     asyncio.run(main())
