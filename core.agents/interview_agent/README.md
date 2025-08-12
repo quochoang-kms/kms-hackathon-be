@@ -15,15 +15,167 @@ A multi-agent system built with Strands Agents framework that helps interviewers
 
 ## Architecture
 
-The system uses a multi-agent architecture with specialized agents:
+The system uses a **multi-agent architecture** built on the Strands Agents framework, where specialized agents work together in a coordinated pipeline to prepare comprehensive interview materials.
 
-1. **DocumentParserAgent**: Extract text from PDF/DOCX files or process direct text
-2. **JDAnalyzerAgent**: Analyze job descriptions and extract requirements
-3. **CVAnalyzerAgent**: Analyze candidate CVs and extract skills/experience
-4. **SkillsMatcherAgent**: Match candidate skills against job requirements
-5. **QuestionGeneratorAgent**: Generate interview questions based on analysis
-6. **AnswerEvaluatorAgent**: Create evaluation criteria and expected answers
-7. **InterviewPreparationSystem**: Main orchestrator using agent graph
+### System Architecture Diagram
+
+```mermaid
+graph TD
+    A[User Input] --> B[InterviewPreparationSystem]
+    B --> C[DocumentParserAgent]
+    B --> D[JDAnalyzerAgent]
+    B --> E[CVAnalyzerAgent]
+    
+    C --> |Parsed JD Text| D
+    C --> |Parsed CV Text| E
+    
+    D --> |JD Analysis| F[SkillsMatcherAgent]
+    E --> |CV Analysis| F
+    
+    F --> |Skills Match Report| G[QuestionGeneratorAgent]
+    D --> |Job Requirements| G
+    E --> |Candidate Profile| G
+    
+    G --> |Generated Questions| H[AnswerEvaluatorAgent]
+    F --> |Match Analysis| H
+    
+    H --> |Complete Interview Package| I[Final Output]
+    
+    subgraph "Input Processing Layer"
+        C
+    end
+    
+    subgraph "Analysis Layer"
+        D
+        E
+    end
+    
+    subgraph "Matching Layer"
+        F
+    end
+    
+    subgraph "Generation Layer"
+        G
+        H
+    end
+    
+    style B fill:#e1f5fe
+    style I fill:#e8f5e8
+    style C fill:#fff3e0
+    style D fill:#f3e5f5
+    style E fill:#f3e5f5
+    style F fill:#e0f2f1
+    style G fill:#fce4ec
+    style H fill:#fce4ec
+```
+
+### Agent Responsibilities
+
+#### 1. **InterviewPreparationSystem** (Main Orchestrator)
+- **Purpose**: Central coordinator that manages the entire interview preparation workflow
+- **Responsibilities**:
+  - Orchestrates agent execution sequence using agent graph
+  - Manages data flow between agents
+  - Handles input validation and parameter processing
+  - Aggregates results from all agents into final output
+  - Provides error handling and recovery mechanisms
+- **Input**: Job description, CV, role parameters, interview settings
+- **Output**: Complete interview preparation package
+
+#### 2. **DocumentParserAgent** (Input Processing Layer)
+- **Purpose**: Handles document processing and text extraction from various formats
+- **Responsibilities**:
+  - Parse PDF and DOCX files
+  - Extract clean text content
+  - Handle direct text input
+  - Normalize text formatting
+  - Validate document structure and content
+- **Input**: File paths or direct text (JD and CV)
+- **Output**: Clean, structured text content
+- **Technologies**: PyPDF2, python-docx, text preprocessing
+
+#### 3. **JDAnalyzerAgent** (Analysis Layer)
+- **Purpose**: Analyzes job descriptions to extract structured requirements and competencies
+- **Responsibilities**:
+  - Extract required and preferred technical skills
+  - Identify soft skills and behavioral requirements
+  - Determine experience level expectations
+  - Parse role-specific competencies
+  - Extract company culture and values
+  - Identify key responsibilities and growth opportunities
+- **Input**: Parsed job description text
+- **Output**: Structured JD analysis with categorized requirements
+- **AI Focus**: NLP for requirement extraction, skill categorization
+
+#### 4. **CVAnalyzerAgent** (Analysis Layer)
+- **Purpose**: Analyzes candidate CVs to extract skills, experience, and qualifications
+- **Responsibilities**:
+  - Extract technical skills and proficiency levels
+  - Calculate years of experience per technology/domain
+  - Identify leadership and management experience
+  - Parse education background and certifications
+  - Extract project experience and achievements
+  - Analyze career progression and growth trajectory
+- **Input**: Parsed CV text
+- **Output**: Structured candidate profile with skills matrix
+- **AI Focus**: Entity recognition, experience quantification, skill assessment
+
+#### 5. **SkillsMatcherAgent** (Matching Layer)
+- **Purpose**: Performs intelligent matching between job requirements and candidate qualifications
+- **Responsibilities**:
+  - Match technical skills with proficiency scoring
+  - Identify skill gaps and missing requirements
+  - Calculate overall compatibility score
+  - Assess experience level alignment
+  - Highlight candidate strengths and differentiators
+  - Generate recommendations for skill development
+- **Input**: JD analysis + CV analysis
+- **Output**: Comprehensive skills matching report with scores
+- **AI Focus**: Semantic matching, scoring algorithms, gap analysis
+
+#### 6. **QuestionGeneratorAgent** (Generation Layer)
+- **Purpose**: Generates tailored interview questions based on role, level, and candidate profile
+- **Responsibilities**:
+  - Create level-appropriate questions (Junior to Principal)
+  - Generate round-specific questions (Screening, Technical, Behavioral, Final)
+  - Adapt questions to interview persona (Friendly, Analytical, etc.)
+  - Focus on skill gaps and strengths identified in matching
+  - Include scenario-based and practical questions
+  - Ensure question diversity and comprehensive coverage
+- **Input**: Skills matching report + role parameters + interview settings
+- **Output**: Categorized set of interview questions
+- **AI Focus**: Question generation, difficulty calibration, persona adaptation
+
+#### 7. **AnswerEvaluatorAgent** (Generation Layer)
+- **Purpose**: Creates evaluation criteria and expected answers for generated questions
+- **Responsibilities**:
+  - Develop expected answer frameworks
+  - Create scoring rubrics and evaluation criteria
+  - Define red flags and positive indicators
+  - Generate follow-up question suggestions
+  - Provide interviewer guidance and tips
+  - Create competency-based assessment matrices
+- **Input**: Generated questions + candidate profile + role requirements
+- **Output**: Complete evaluation framework with scoring guides
+- **AI Focus**: Answer modeling, rubric generation, assessment criteria
+
+### Data Flow Architecture
+
+1. **Input Stage**: User provides JD, CV, and interview parameters
+2. **Parsing Stage**: Documents are processed and text is extracted
+3. **Analysis Stage**: Parallel analysis of JD and CV content
+4. **Matching Stage**: Skills and requirements are matched and scored
+5. **Generation Stage**: Questions and evaluation criteria are created
+6. **Output Stage**: Complete interview package is assembled and returned
+
+### Key Architectural Benefits
+
+- **Modularity**: Each agent can be developed, tested, and maintained independently
+- **Scalability**: Agents can be scaled individually based on processing needs
+- **Flexibility**: Easy to add new agents or modify existing ones
+- **Reusability**: Agents can be reused across different interview scenarios
+- **Maintainability**: Clear separation of concerns makes debugging and updates easier
+- **Extensibility**: New features can be added by introducing new agents or enhancing existing ones
 
 ## Installation
 
