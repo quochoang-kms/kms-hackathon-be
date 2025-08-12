@@ -1,7 +1,7 @@
 """Question Generator Agent"""
 
 from typing import Dict, List, Any
-from strands_agents import Agent, tool
+from strands import Agent, tool
 import logging
 
 logger = logging.getLogger(__name__)
@@ -80,10 +80,11 @@ class QuestionGeneratorAgent(Agent):
         """
         
         try:
-            response = await self.llm.ainvoke(prompt)
+            result = await self.invoke_async(prompt)
+            response = str(result)
             
             # Parse the response
-            questions = self._parse_questions(response.content, level, round_number, persona)
+            questions = self._parse_questions(response, level, round_number, persona)
             
             return {
                 "level": level,
@@ -93,7 +94,7 @@ class QuestionGeneratorAgent(Agent):
                 "role": role,
                 "questions": questions,
                 "total_questions": len(questions),
-                "raw_response": response.content
+                "raw_response": response
             }
             
         except Exception as e:

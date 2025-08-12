@@ -6,7 +6,7 @@ from typing import Union, Dict, Any
 import PyPDF2
 import pdfplumber
 from docx import Document
-from strands_agents import Agent, tool
+from strands import Agent, tool
 import logging
 
 logger = logging.getLogger(__name__)

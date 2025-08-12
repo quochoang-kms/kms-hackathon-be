@@ -1,7 +1,8 @@
 """Main Interview Preparation System using Agent Graph"""
 
 from typing import Dict, List, Any, Union
-from strands_agents import Agent, agent_graph, journal
+from strands import Agent, tool
+from strands_tools import agent_graph
 from .document_parser import DocumentParserAgent
 from .jd_analyzer import JDAnalyzerAgent
 from .cv_analyzer import CVAnalyzerAgent
@@ -17,26 +18,27 @@ class InterviewPreparationSystem(Agent):
     """Main orchestrator for the interview preparation system"""
     
     def __init__(self, model_id: str = None, region: str = None, **kwargs):
-        super().__init__(**kwargs)
-        
         # Initialize model configuration
         self.model_id = model_id or os.getenv('MODEL_ID', 'us.anthropic.claude-3-7-sonnet-20250219-v1:0')
         self.region = region or os.getenv('REGION', 'us-west-2')
         
-        # Initialize agents
-        self.document_parser = DocumentParserAgent(model_id=self.model_id, region=self.region)
-        self.jd_analyzer = JDAnalyzerAgent(model_id=self.model_id, region=self.region)
-        self.cv_analyzer = CVAnalyzerAgent(model_id=self.model_id, region=self.region)
-        self.skills_matcher = SkillsMatcherAgent(model_id=self.model_id, region=self.region)
-        self.question_generator = QuestionGeneratorAgent(model_id=self.model_id, region=self.region)
-        self.answer_evaluator = AnswerEvaluatorAgent(model_id=self.model_id, region=self.region)
+        # Initialize the main agent with model
+        super().__init__(model=self.model_id, **kwargs)
+        
+        # Initialize agents with the same model
+        self.document_parser = DocumentParserAgent(model=self.model_id)
+        self.jd_analyzer = JDAnalyzerAgent(model=self.model_id)
+        self.cv_analyzer = CVAnalyzerAgent(model=self.model_id)
+        self.skills_matcher = SkillsMatcherAgent(model=self.model_id)
+        self.question_generator = QuestionGeneratorAgent(model=self.model_id)
+        self.answer_evaluator = AnswerEvaluatorAgent(model=self.model_id)
         
         # Validation constants
         self.valid_levels = ["Junior", "Mid", "Senior", "Lead", "Principal"]
         self.valid_rounds = [1, 2, 3, 4]
         self.valid_personas = ["Friendly", "Serious", "Analytical", "Collaborative", "Challenging"]
     
-    @agent_graph
+    @tool
     async def prepare_interview(
         self,
         jd: Union[str, bytes],
@@ -63,23 +65,10 @@ class InterviewPreparationSystem(Agent):
             # Validate inputs
             self._validate_inputs(level, round_number, interview_persona)
             
-            # Store initial context
-            await journal.store("context", {
-                "role": role,
-                "level": level,
-                "round_number": round_number,
-                "interview_persona": interview_persona
-            })
-            
             # Step 1: Parse documents
             logger.info("Parsing JD and CV documents...")
             jd_parsed = await self.document_parser.parse_document(jd)
             cv_parsed = await self.document_parser.parse_document(cv)
-            
-            await journal.store("parsed_documents", {
-                "jd": jd_parsed,
-                "cv": cv_parsed
-            })
             
             # Step 2: Analyze JD
             logger.info("Analyzing job description...")
@@ -89,8 +78,6 @@ class InterviewPreparationSystem(Agent):
                 level
             )
             
-            await journal.store("jd_analysis", jd_analysis)
-            
             # Step 3: Analyze CV
             logger.info("Analyzing CV...")
             cv_analysis = await self.cv_analyzer.analyze_cv(
@@ -99,13 +86,9 @@ class InterviewPreparationSystem(Agent):
                 level
             )
             
-            await journal.store("cv_analysis", cv_analysis)
-            
             # Step 4: Match skills
             logger.info("Matching skills...")
             skills_match = await self.skills_matcher.match_skills(jd_analysis, cv_analysis)
-            
-            await journal.store("skills_match", skills_match)
             
             # Step 5: Generate questions
             logger.info("Generating interview questions...")
@@ -117,8 +100,6 @@ class InterviewPreparationSystem(Agent):
                 role
             )
             
-            await journal.store("questions", questions)
-            
             # Step 6: Generate evaluation criteria
             logger.info("Generating evaluation criteria...")
             evaluation_criteria = await self.answer_evaluator.generate_evaluation_criteria(
@@ -127,8 +108,7 @@ class InterviewPreparationSystem(Agent):
                 interview_persona,
                 skills_match
             )
-            
-            await journal.store("evaluation_criteria", evaluation_criteria)
+
             
             # Compile final results
             results = {
@@ -201,17 +181,17 @@ class InterviewPreparationSystem(Agent):
         from datetime import datetime
         return datetime.now().isoformat()
     
-    async def get_analysis_summary(self) -> Dict[str, Any]:
-        """Get a summary of the analysis from journal"""
+    async def get_analysis_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """Get a summary of the analysis results"""
         try:
-            context = await journal.retrieve("context")
-            skills_match = await journal.retrieve("skills_match")
-            questions = await journal.retrieve("questions")
+            analysis = results.get("analysis_results", {})
+            skills_match = analysis.get("skills_matching", {})
+            interview_prep = results.get("interview_preparation", {})
             
             return {
-                "context": context,
+                "context": results.get("metadata", {}),
                 "match_score": skills_match.get("overall_match_score", 0),
-                "question_count": questions.get("total_questions", 0),
+                "question_count": interview_prep.get("total_questions", 0),
                 "strong_areas": skills_match.get("strong_areas", []),
                 "areas_for_improvement": skills_match.get("missing_skills", [])
             }

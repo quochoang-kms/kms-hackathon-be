@@ -1,7 +1,7 @@
 """Job Description Analyzer Agent"""
 
 from typing import Dict, List, Any
-from strands_agents import Agent, tool
+from strands import Agent, tool
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,10 +42,12 @@ class JDAnalyzerAgent(Agent):
         """
         
         try:
-            response = await self.llm.ainvoke(prompt)
+            # Use the agent's built-in method to invoke the model
+            result = await self.invoke_async(prompt)
+            response = str(result)
             
             # Parse the response to extract structured data
-            analysis = self._parse_jd_analysis(response.content, level)
+            analysis = self._parse_jd_analysis(response, level)
             
             return {
                 "role": role,
@@ -57,7 +59,7 @@ class JDAnalyzerAgent(Agent):
                 "education_requirements": analysis.get("education_requirements", ""),
                 "level_competencies": analysis.get("level_competencies", []),
                 "key_responsibilities": analysis.get("key_responsibilities", []),
-                "raw_analysis": response.content
+                "raw_analysis": response
             }
             
         except Exception as e:

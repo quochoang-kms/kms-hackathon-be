@@ -1,7 +1,7 @@
 """CV Analyzer Agent"""
 
 from typing import Dict, List, Any
-from strands_agents import Agent, tool
+from strands import Agent, tool
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,10 +42,11 @@ class CVAnalyzerAgent(Agent):
         """
         
         try:
-            response = await self.llm.ainvoke(prompt)
+            result = await self.invoke_async(prompt)
+            response = str(result)
             
             # Parse the response to extract structured data
-            analysis = self._parse_cv_analysis(response.content, target_level)
+            analysis = self._parse_cv_analysis(response, target_level)
             
             return {
                 "target_role": target_role,
@@ -58,7 +59,7 @@ class CVAnalyzerAgent(Agent):
                 "key_achievements": analysis.get("key_achievements", []),
                 "demonstrated_soft_skills": analysis.get("demonstrated_soft_skills", []),
                 "years_of_experience": analysis.get("years_of_experience", 0),
-                "raw_analysis": response.content
+                "raw_analysis": response
             }
             
         except Exception as e:

@@ -1,7 +1,7 @@
 """Skills Matcher Agent"""
 
 from typing import Dict, List, Any, Tuple
-from strands_agents import Agent, tool
+from strands import Agent, tool
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,10 +48,11 @@ class SkillsMatcherAgent(Agent):
         """
         
         try:
-            response = await self.llm.ainvoke(prompt)
+            result = await self.invoke_async(prompt)
+            response = str(result)
             
             # Parse the response
-            analysis = self._parse_matching_analysis(response.content, jd_analysis, cv_analysis)
+            analysis = self._parse_matching_analysis(response, jd_analysis, cv_analysis)
             
             return {
                 "level": level,
@@ -61,7 +62,7 @@ class SkillsMatcherAgent(Agent):
                 "red_flags": analysis.get("red_flags", []),
                 "level_readiness": analysis.get("level_readiness", ""),
                 "overall_match_score": analysis.get("overall_match_score", 0),
-                "raw_analysis": response.content
+                "raw_analysis": response
             }
             
         except Exception as e:

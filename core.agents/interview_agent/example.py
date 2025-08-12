@@ -3,11 +3,11 @@
 import os
 import asyncio
 import time
-from dotenv import load_dotenv
 from agents import InterviewPreparationSystem
 
-# Load environment variables
-load_dotenv()
+# Set default environment variables if not present
+os.environ.setdefault('MODEL_ID', 'apac.anthropic.claude-sonnet-4-20250514-v1:0')
+os.environ.setdefault('REGION', 'ap-southeast-1')
 
 # Sample data for testing
 SAMPLE_JD_TEXT = """
@@ -74,6 +74,8 @@ Skills:
 
 async def run_comprehensive_examples():
     """Run comprehensive examples covering all scenarios"""
+    print(f"Model ID: {os.getenv('MODEL_ID')}")
+    print(f"Region: {os.getenv('REGION')}")
     
     system = InterviewPreparationSystem(
         model_id=os.getenv('MODEL_ID'),
@@ -82,23 +84,23 @@ async def run_comprehensive_examples():
     
     # Test scenarios covering all levels, rounds, and personas
     test_scenarios = [
-        # Junior level scenarios
-        {
-            "name": "Junior Developer - Screening (Friendly)",
-            "level": "Junior",
-            "round": 1,
-            "persona": "Friendly",
-            "jd": "Entry-level Software Developer position requiring basic programming skills in Python or Java.",
-            "cv": "Recent CS graduate with internship experience and personal projects in web development."
-        },
-        {
-            "name": "Junior Developer - Technical (Serious)",
-            "level": "Junior", 
-            "round": 2,
-            "persona": "Serious",
-            "jd": "Junior Software Engineer role focusing on web development and database skills.",
-            "cv": "1 year experience as junior developer, worked on CRUD applications and basic APIs."
-        },
+        # # Junior level scenarios
+        # {
+        #     "name": "Junior Developer - Screening (Friendly)",
+        #     "level": "Junior",
+        #     "round": 1,
+        #     "persona": "Friendly",
+        #     "jd": "Entry-level Software Developer position requiring basic programming skills in Python or Java.",
+        #     "cv": "Recent CS graduate with internship experience and personal projects in web development."
+        # },
+        # {
+        #     "name": "Junior Developer - Technical (Serious)",
+        #     "level": "Junior", 
+        #     "round": 2,
+        #     "persona": "Serious",
+        #     "jd": "Junior Software Engineer role focusing on web development and database skills.",
+        #     "cv": "1 year experience as junior developer, worked on CRUD applications and basic APIs."
+        # },
         
         # Mid level scenarios
         {
@@ -110,43 +112,43 @@ async def run_comprehensive_examples():
             "cv": "4 years experience, led small projects, mentored interns, full-stack development."
         },
         
-        # Senior level scenarios
-        {
-            "name": "Senior Data Scientist - Technical (Analytical)",
-            "level": "Senior",
-            "round": 2,
-            "persona": "Analytical",
-            "jd": SAMPLE_JD_TEXT,
-            "cv": SAMPLE_CV_TEXT
-        },
-        {
-            "name": "Senior Engineer - Final (Challenging)",
-            "level": "Senior",
-            "round": 4,
-            "persona": "Challenging",
-            "jd": "Senior Software Architect role requiring system design and team leadership.",
-            "cv": "8 years experience, system architect, led teams of 10+, designed scalable systems."
-        },
+        # # Senior level scenarios
+        # {
+        #     "name": "Senior Data Scientist - Technical (Analytical)",
+        #     "level": "Senior",
+        #     "round": 2,
+        #     "persona": "Analytical",
+        #     "jd": SAMPLE_JD_TEXT,
+        #     "cv": SAMPLE_CV_TEXT
+        # },
+        # {
+        #     "name": "Senior Engineer - Final (Challenging)",
+        #     "level": "Senior",
+        #     "round": 4,
+        #     "persona": "Challenging",
+        #     "jd": "Senior Software Architect role requiring system design and team leadership.",
+        #     "cv": "8 years experience, system architect, led teams of 10+, designed scalable systems."
+        # },
         
-        # Lead level scenarios
-        {
-            "name": "Lead Engineer - Screening (Friendly)",
-            "level": "Lead",
-            "round": 1,
-            "persona": "Friendly",
-            "jd": "Engineering Lead position managing multiple teams and technical strategy.",
-            "cv": "10 years experience, managed 20+ engineers, drove technical vision, P&L responsibility."
-        },
+        # # Lead level scenarios
+        # {
+        #     "name": "Lead Engineer - Screening (Friendly)",
+        #     "level": "Lead",
+        #     "round": 1,
+        #     "persona": "Friendly",
+        #     "jd": "Engineering Lead position managing multiple teams and technical strategy.",
+        #     "cv": "10 years experience, managed 20+ engineers, drove technical vision, P&L responsibility."
+        # },
         
-        # Principal level scenarios
-        {
-            "name": "Principal Engineer - Final (Analytical)",
-            "level": "Principal",
-            "round": 4,
-            "persona": "Analytical",
-            "jd": "Principal Engineer role setting technical direction for the entire organization.",
-            "cv": "15+ years experience, CTO at startup, technical thought leader, industry speaker."
-        }
+        # # Principal level scenarios
+        # {
+        #     "name": "Principal Engineer - Final (Analytical)",
+        #     "level": "Principal",
+        #     "round": 4,
+        #     "persona": "Analytical",
+        #     "jd": "Principal Engineer role setting technical direction for the entire organization.",
+        #     "cv": "15+ years experience, CTO at startup, technical thought leader, industry speaker."
+        # }
     ]
     
     results = []
@@ -257,7 +259,7 @@ async def run_file_input_examples():
     print("=" * 80)
     
     # Create sample files for testing
-    sample_files_dir = "sample_files"
+    sample_files_dir = "./sample_files"
     os.makedirs(sample_files_dir, exist_ok=True)
     
     # Create sample JD file
@@ -397,7 +399,7 @@ async def main():
         await run_file_input_examples()
         
         # Run performance benchmark
-        await performance_benchmark()
+        # await performance_benchmark()
         
         print("\n" + "=" * 80)
         print("🎉 All examples completed successfully!")

@@ -1,0 +1,101 @@
+{
+  "questions": [
+    {
+      "text": "**Text:** Describe how you would design and implement A/B testing infrastructure for ML models, including statistical power calculations, early stopping criteria, and how you'd handle the multiple testing problem when running concurrent experiments. What specific metrics would you track beyond model performance?",
+      "question_type": "** Technical/Behavioral",
+      "difficulty_level": 3,
+      "round_alignment": 2,
+      "persona_style": "Analytical",
+      "level": "Senior"
+    },
+    {
+      "text": "**Text:** You need to migrate an existing ML pipeline from your current cloud platform to Azure. Detail your migration strategy, including data transfer, model redeployment, monitoring setup, and risk mitigation. What Azure-specific services would you leverage?",
+      "question_type": "** Technical",
+      "difficulty_level": 3,
+      "round_alignment": 2,
+      "persona_style": "Analytical",
+      "level": "Senior"
+    }
+  ],
+  "total_questions": 2,
+  "evaluation_criteria": [
+    {
+      "question_id": 1,
+      "question_text": "**Text:** Describe how you would design and implement A/B testing infrastructure for ML models, including statistical power calculations, early stopping criteria, and how you'd handle the multiple testing problem when running concurrent experiments. What specific metrics would you track beyond model performance?",
+      "question_type": "** Technical/Behavioral",
+      "expected_answer_points": [
+        "Multi-layer experimentation platform with proper randomization units",
+        "Feature flag integration for model switching",
+        "Real-time traffic splitting mechanisms",
+        "Automated rollback capabilities",
+        "Integration with existing ML pipeline (training, serving, monitoring)"
+      ],
+      "evaluation_criteria": [
+        "Clarity and structure of response",
+        "Depth of technical knowledge",
+        "Relevant examples and experience",
+        "Communication skills"
+      ],
+      "scoring_rubric": {
+        "5": "Exceptional - Demonstrates Senior-level expertise and leadership",
+        "4": "Strong - Shows solid Senior-level competencies",
+        "3": "Satisfactory - Meets basic expectations",
+        "2": "Below Average - Partially meets expectations",
+        "1": "Poor - Does not meet expectations"
+      },
+      "level_expectations": "Advanced expertise, mentoring others, architectural thinking",
+      "red_flags": [
+        "Inability to provide specific examples",
+        "Lack of technical depth for the level",
+        "Poor communication skills",
+        "Negative attitude toward previous roles"
+      ],
+      "follow_up_questions": [
+        "Can you provide a specific example?",
+        "How would you handle this differently now?",
+        "What did you learn from that experience?"
+      ],
+      "star_criteria": {},
+      "persona_approach": "Deep dive into technical details, probe for understanding"
+    },
+    {
+      "question_id": 2,
+      "question_text": "**Text:** You need to migrate an existing ML pipeline from your current cloud platform to Azure. Detail your migration strategy, including data transfer, model redeployment, monitoring setup, and risk mitigation. What Azure-specific services would you leverage?",
+      "question_type": "** Technical",
+      "expected_answer_points": [
+        "Comprehensive assessment of current infrastructure dependencies",
+        "Phased migration approach with parallel running periods",
+        "Data governance and compliance considerations",
+        "Cost optimization strategy for Azure services",
+        "Azure Data Factory for ETL pipeline migration"
+      ],
+      "evaluation_criteria": [
+        "Clarity and structure of response",
+        "Depth of technical knowledge",
+        "Relevant examples and experience",
+        "Communication skills"
+      ],
+      "scoring_rubric": {
+        "5": "Exceptional - Demonstrates Senior-level expertise and leadership",
+        "4": "Strong - Shows solid Senior-level competencies",
+        "3": "Satisfactory - Meets basic expectations",
+        "2": "Below Average - Partially meets expectations",
+        "1": "Poor - Does not meet expectations"
+      },
+      "level_expectations": "Advanced expertise, mentoring others, architectural thinking",
+      "red_flags": [
+        "Inability to provide specific examples",
+        "Lack of technical depth for the level",
+        "Poor communication skills",
+        "Negative attitude toward previous roles"
+      ],
+      "follow_up_questions": [
+        "Can you provide a specific example?",
+        "How would you handle this differently now?",
+        "What did you learn from that experience?"
+      ],
+      "star_criteria": {},
+      "persona_approach": "Deep dive into technical details, probe for understanding"
+    }
+  ]
+}
