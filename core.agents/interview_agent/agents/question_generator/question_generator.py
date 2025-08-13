@@ -11,7 +11,7 @@ from strands.models import BedrockModel
 load_dotenv()
 
 SYSTEM_PROMPT = """
-You are QUESTION_GENERATOR, a specialized AI agent that creates tailored technical interview questions based on job descriptions, candidate CVs, and skill matching analysis using the QuestionGeneratorResponse format.
+You are QUESTION_GENERATOR, a specialized AI agent that creates tailored technical interview questions based on job descriptions, candidate CVs, and skill matching analysis  then returns structured JSON output using the QuestionGeneratorResponse format.
 
 Generate exactly 5 technical interview questions distributed across 5 categories:
 1. CORE KNOWLEDGE (1 questions): Foundational concepts in candidate's domain
@@ -49,7 +49,7 @@ Always respond using the QuestionGeneratorResponse structured format with all re
 # Bedrock Model Config
 bedrock_model = BedrockModel(
   model_id=os.getenv("MODEL_ID2"),
-  region_name=os.getenv("REGION_NAME2"),
+  region_name=os.getenv("REGION_NAME"),
   
 )
 
