@@ -1,0 +1,24 @@
+Senior Data Scientist Position
+
+  We are seeking a Senior Data Scientist to join our AI/ML team.
+
+  Required Skills:
+  - 5+ years of experience in data science and machine learning
+  - Strong programming skills in Python and R
+  - Experience with ML frameworks (TensorFlow, PyTorch, Scikit-learn)
+  - Statistical analysis and hypothesis testing
+  - Data visualization and storytelling
+  - Experience with big data technologies (Spark, Hadoop)
+
+  Preferred Skills:
+  - PhD in Computer Science, Statistics, or related field
+  - Experience with deep learning and neural networks
+  - Cloud platforms (AWS, GCP, Azure)
+  - MLOps and model deployment
+  - Leadership and mentoring experience
+
+  Responsibilities:
+  - Lead data science projects from conception to deployment
+  - Mentor junior data scientists
+  - Collaborate with engineering teams on model implementation
+  - Present findings to stakeholders and executives

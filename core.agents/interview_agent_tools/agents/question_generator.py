@@ -19,7 +19,8 @@ class QuestionGeneratorAgent(Agent):
         level: str, 
         round_number: int, 
         persona: str,
-        role: str
+        role: str,
+        num_questions: int = 8
     ) -> Dict[str, Any]:
         """Generate interview questions based on analysis and parameters
         
@@ -29,6 +30,7 @@ class QuestionGeneratorAgent(Agent):
             round_number: Interview round (1-4)
             persona: Interview persona (Friendly, Serious, etc.)
             role: Target role
+            num_questions: Number of questions to generate (default: 8)
             
         Returns:
             Dict with generated questions
@@ -64,7 +66,7 @@ class QuestionGeneratorAgent(Agent):
         PERSONA STYLE ({persona}):
         {persona_style}
 
-        Generate 8-12 questions with:
+        Generate exactly {num_questions} questions with:
         1. Question text
         2. Question type (Technical, Behavioral, Situational, Cultural Fit)
         3. Difficulty level (1-5)

@@ -5,93 +5,55 @@ import asyncio
 import time
 import json
 from datetime import datetime
-from agents import InterviewPreparationSystem
+from agents.interview_system import InterviewPreparationSystem
 
 # Set default environment variables if not present
 os.environ.setdefault('MODEL_ID', 'apac.anthropic.claude-sonnet-4-20250514-v1:0')
 os.environ.setdefault('REGION', 'ap-southeast-1')
 
-# Sample data for testing
-SAMPLE_JD_TEXT = """
-  Senior Data Scientist Position
+# File paths for input data
+SAMPLE_JD_PATH = "./input/SAMPLE_JD.txt"
+SAMPLE_CV_PATH = "./input/SAMPLE_CV.txt"
 
-  We are seeking a Senior Data Scientist to join our AI/ML team.
-
-  Required Skills:
-  - 5+ years of experience in data science and machine learning
-  - Strong programming skills in Python and R
-  - Experience with ML frameworks (TensorFlow, PyTorch, Scikit-learn)
-  - Statistical analysis and hypothesis testing
-  - Data visualization and storytelling
-  - Experience with big data technologies (Spark, Hadoop)
-
-  Preferred Skills:
-  - PhD in Computer Science, Statistics, or related field
-  - Experience with deep learning and neural networks
-  - Cloud platforms (AWS, GCP, Azure)
-  - MLOps and model deployment
-  - Leadership and mentoring experience
-
-  Responsibilities:
-  - Lead data science projects from conception to deployment
-  - Mentor junior data scientists
-  - Collaborate with engineering teams on model implementation
-  - Present findings to stakeholders and executives
-  """
-
-SAMPLE_CV_TEXT = """
-  Dr. Emily Chen
-  Senior Data Scientist
-
-  Education:
-  - PhD in Computer Science, MIT (2018)
-  - MS in Statistics, Stanford University (2014)
-  - BS in Mathematics, UC Berkeley (2012)
-
-  Experience:
-  - Senior Data Scientist, DataTech Inc. (2020-Present)
-    * Led ML initiatives for recommendation systems serving 10M+ users
-    * Improved model accuracy by 25% using ensemble methods
-    * Mentored team of 4 junior data scientists
-    * Deployed models to production using MLflow and Kubernetes
-
-  - Data Scientist, AI Startup (2018-2020)
-    * Built predictive models for customer churn (95% accuracy)
-    * Implemented A/B testing framework
-    * Developed data pipelines using Apache Spark
-
-  - Research Assistant, MIT AI Lab (2014-2018)
-    * Published 8 papers in top-tier ML conferences
-    * Developed novel deep learning architectures
-    * Collaborated with industry partners on research projects
-
-  Skills:
-  - Programming: Python, R, SQL, Scala
-  - ML/AI: TensorFlow, PyTorch, Scikit-learn, XGBoost
-  - Big Data: Spark, Hadoop, Kafka
-  - Cloud: AWS (SageMaker, EC2, S3), GCP
-  - Visualization: Matplotlib, Seaborn, Tableau
-  - Leadership: Team management, technical mentoring
-  """
+def load_sample_data():
+    """Load sample JD and CV from input files"""
+    try:
+        with open(SAMPLE_JD_PATH, 'r', encoding='utf-8') as f:
+            jd_text = f.read().strip()
+        
+        with open(SAMPLE_CV_PATH, 'r', encoding='utf-8') as f:
+            cv_text = f.read().strip()
+        
+        return jd_text, cv_text
+    except FileNotFoundError as e:
+        print(f"❌ Error loading sample data: {e}")
+        print(f"Please ensure {SAMPLE_JD_PATH} and {SAMPLE_CV_PATH} exist")
+        raise
 
 class OutputSaver:
     """Helper class to save outputs to files"""
     
-    def __init__(self, output_dir="./output"):
-        self.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    def __init__(self, scenario_name, output_base_dir="./output"):
+        self.output_base_dir = output_base_dir
+        # Create unique folder for this run
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_scenario_name = "".join(c for c in scenario_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_scenario_name = safe_scenario_name.replace(' ', '_')
+        
+        self.output_dir = os.path.join(output_base_dir, f"{timestamp}_{safe_scenario_name}")
+        os.makedirs(self.output_dir, exist_ok=True)
+        self.timestamp = timestamp
     
     def save_json(self, data, filename):
         """Save data as JSON file"""
-        filepath = os.path.join(self.output_dir, f"{self.timestamp}_{filename}")
+        filepath = os.path.join(self.output_dir, filename)
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         return filepath
     
     def save_text(self, text, filename):
         """Save text to file"""
-        filepath = os.path.join(self.output_dir, f"{self.timestamp}_{filename}")
+        filepath = os.path.join(self.output_dir, filename)
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(text)
         return filepath
@@ -101,8 +63,26 @@ async def run_single_example_with_output():
     print("🎯 Interview Preparation System - Single Example with Output")
     print("=" * 80)
     
-    # Initialize output saver
-    output_saver = OutputSaver()
+    # Load sample data from files
+    try:
+        sample_jd, sample_cv = load_sample_data()
+    except Exception as e:
+        print(f"❌ Failed to load sample data: {e}")
+        return None
+    
+    # Test scenario
+    scenario = {
+        "name": "Software Engineer Intern",
+        "level": "Junior",
+        "round": 2,
+        "persona": "Friendly",
+        "num_questions": 5,  # Number of questions to generate
+        "jd": sample_jd,
+        "cv": sample_cv
+    }
+    
+    # Initialize output saver with scenario name
+    output_saver = OutputSaver(scenario["name"])
     
     # Initialize system
     system = InterviewPreparationSystem(
@@ -110,17 +90,8 @@ async def run_single_example_with_output():
         region=os.getenv('REGION')
     )
     
-    # Test scenario
-    scenario = {
-        "name": "Senior Data Scientist - Technical Round",
-        "level": "Senior",
-        "round": 2,
-        "persona": "Analytical",
-        "jd": SAMPLE_JD_TEXT,
-        "cv": SAMPLE_CV_TEXT
-    }
-    
     print(f"📋 Running Scenario: {scenario['name']}")
+    print(f"📁 Output folder: {output_saver.output_dir}")
     print("-" * 60)
     
     start_time = time.time()
@@ -129,10 +100,11 @@ async def run_single_example_with_output():
         result = await system.prepare_interview(
             jd=scenario["jd"],
             cv=scenario["cv"],
-            role="Data Scientist",
+            role="Software Engineer",
             level=scenario["level"],
             round_number=scenario["round"],
-            interview_persona=scenario["persona"]
+            interview_persona=scenario["persona"],
+            num_questions=scenario["num_questions"]
         )
         
         end_time = time.time()
@@ -187,7 +159,6 @@ async def run_single_example_with_output():
                     print(f"      Type: {q.get('question_type')} | Difficulty: {q.get('difficulty_level', 'N/A')}/5")
             
             return result
-            
         else:
             print(f"❌ Failed: {result.get('error', 'Unknown error')}")
             # Save error result too

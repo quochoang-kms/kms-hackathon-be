@@ -1,19 +1,19 @@
 {
   "questions": [
     {
-      "text": "**Text:** Describe how you would design and implement A/B testing infrastructure for ML models, including statistical power calculations, early stopping criteria, and how you'd handle the multiple testing problem when running concurrent experiments. What specific metrics would you track beyond model performance?",
-      "question_type": "** Technical/Behavioral",
-      "difficulty_level": 3,
+      "text": "Tell me about your experience relevant to this Senior position.",
+      "question_type": "Behavioral",
+      "difficulty_level": 2,
       "round_alignment": 2,
-      "persona_style": "Analytical",
+      "persona_style": "Friendly",
       "level": "Senior"
     },
     {
-      "text": "**Text:** You need to migrate an existing ML pipeline from your current cloud platform to Azure. Detail your migration strategy, including data transfer, model redeployment, monitoring setup, and risk mitigation. What Azure-specific services would you leverage?",
-      "question_type": "** Technical",
-      "difficulty_level": 3,
+      "text": "What interests you most about this role?",
+      "question_type": "Cultural Fit",
+      "difficulty_level": 1,
       "round_alignment": 2,
-      "persona_style": "Analytical",
+      "persona_style": "Friendly",
       "level": "Senior"
     }
   ],
@@ -21,14 +21,14 @@
   "evaluation_criteria": [
     {
       "question_id": 1,
-      "question_text": "**Text:** Describe how you would design and implement A/B testing infrastructure for ML models, including statistical power calculations, early stopping criteria, and how you'd handle the multiple testing problem when running concurrent experiments. What specific metrics would you track beyond model performance?",
-      "question_type": "** Technical/Behavioral",
+      "question_text": "Tell me about your experience relevant to this Senior position.",
+      "question_type": "Behavioral",
       "expected_answer_points": [
-        "Multi-layer experimentation platform with proper randomization units",
-        "Feature flag integration for model switching",
-        "Real-time traffic splitting mechanisms",
-        "Automated rollback capabilities",
-        "Integration with existing ML pipeline (training, serving, monitoring)"
+        "**Technical Leadership**: Examples of leading ML initiatives with significant scale (ideally 1M+ users)",
+        "**Framework Expertise**: Deep knowledge of multiple ML frameworks (TensorFlow, PyTorch, Scikit-learn)",
+        "**Mentorship Experience**: Active mentoring of junior team members (3+ people)",
+        "**Cross-functional Impact**: Leading initiatives across multiple departments/teams",
+        "**Research-to-Production**: Experience translating research into production systems"
       ],
       "evaluation_criteria": [
         "Clarity and structure of response",
@@ -55,19 +55,24 @@
         "How would you handle this differently now?",
         "What did you learn from that experience?"
       ],
-      "star_criteria": {},
-      "persona_approach": "Deep dive into technical details, probe for understanding"
+      "star_criteria": {
+        "Situation": "Clear context and background",
+        "Task": "Specific responsibility or challenge",
+        "Action": "Concrete steps taken",
+        "Result": "Measurable outcomes and learning"
+      },
+      "persona_approach": "Focus on potential and growth mindset, encourage elaboration"
     },
     {
       "question_id": 2,
-      "question_text": "**Text:** You need to migrate an existing ML pipeline from your current cloud platform to Azure. Detail your migration strategy, including data transfer, model redeployment, monitoring setup, and risk mitigation. What Azure-specific services would you leverage?",
-      "question_type": "** Technical",
+      "question_text": "What interests you most about this role?",
+      "question_type": "Cultural Fit",
       "expected_answer_points": [
-        "Comprehensive assessment of current infrastructure dependencies",
-        "Phased migration approach with parallel running periods",
-        "Data governance and compliance considerations",
-        "Cost optimization strategy for Azure services",
-        "Azure Data Factory for ETL pipeline migration"
+        "**Technical Growth**: Specific areas for expanding expertise (e.g., cloud platforms, MLOps)",
+        "**Leadership Development**: Opportunity to grow mentorship and strategic influence",
+        "**Scale Impact**: Excitement about larger user base or more complex problems",
+        "**Innovation Focus**: Interest in cutting-edge ML applications",
+        "**Team Building**: Enthusiasm for developing junior talent"
       ],
       "evaluation_criteria": [
         "Clarity and structure of response",
@@ -95,7 +100,7 @@
         "What did you learn from that experience?"
       ],
       "star_criteria": {},
-      "persona_approach": "Deep dive into technical details, probe for understanding"
+      "persona_approach": "Focus on potential and growth mindset, encourage elaboration"
     }
   ]
 }

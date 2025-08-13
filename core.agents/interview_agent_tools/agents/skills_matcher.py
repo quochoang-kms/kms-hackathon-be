@@ -23,7 +23,7 @@ class SkillsMatcherAgent(Agent):
         Returns:
             Dict with matching results and gap analysis
         """
-        level = jd_analysis.get("level", "Mid")
+        level = jd_analysis.get("level", "Junior")
         
         prompt = f"""
         Compare the candidate's skills and experience against the job requirements for a {level} level position:

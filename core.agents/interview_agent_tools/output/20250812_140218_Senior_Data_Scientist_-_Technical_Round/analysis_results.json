@@ -1,0 +1,85 @@
+ {
+  "jd_analysis": {
+    "required_skills": [
+      "**Programming Languages**: Python and R (strong proficiency required)",
+      "**ML Frameworks**: TensorFlow, PyTorch, Scikit-learn",
+      "**Statistical Analysis**: Hypothesis testing and statistical modeling",
+      "**Data Visualization**: Creating compelling visual narratives and storytelling with data",
+      "**Big Data Technologies**: Apache Spark, Hadoop ecosystem",
+      "**Machine Learning**: Comprehensive ML knowledge and practical application"
+    ],
+    "preferred_skills": [
+      "**Deep Learning**: Neural networks and advanced deep learning techniques",
+      "**Cloud Platforms**: AWS, Google Cloud Platform (GCP), Microsoft Azure",
+      "**MLOps**: Model deployment, monitoring, and lifecycle management"
+    ],
+    "soft_skills": [
+      "**Communication**: Ability to present complex findings to stakeholders and executives",
+      "**Storytelling**: Translating technical insights into business narratives",
+      "**Leadership**: Demonstrated leadership capabilities"
+    ],
+    "level_competencies": [
+      "**Technical Leadership**: Leading complex data science projects independently",
+      "**Mentorship Capability**: Developing junior data scientists and building team capability",
+      "**Strategic Thinking**: Moving beyond individual contributor work to project leadership",
+      "**Stakeholder Management**: Presenting to executives and translating technical concepts for business audiences",
+      "**End-to-End Ownership**: Managing projects from initial conception through production deployment",
+      "**Cross-functional Leadership**: Collaborating with and influencing engineering teams",
+      "**Advanced Technical Depth**: Expertise in multiple ML frameworks and big data technologies"
+    ]
+  },
+  "cv_analysis": {
+    "technical_skills": [
+      "Python, R, SQL, Scala - Strong foundation across statistical and production languages",
+      "TensorFlow, PyTorch, Scikit-learn, XGBoost - Comprehensive deep learning and traditional ML toolkit",
+      "Apache Spark, Hadoop, Kafka - Production-scale data processing capabilities"
+    ],
+    "years_of_experience": 0,
+    "leadership_experience": [
+      "Currently mentoring team of 4 junior data scientists",
+      "Led ML initiatives for large-scale systems (10M+ users)",
+      "Technical mentoring and team development",
+      "Strategic ML initiative ownership",
+      "Strategic technical decision making",
+      "Team mentoring and development",
+      "Cross-functional collaboration",
+      "Academic publishing (demonstrates writing/communication skills)",
+      "Industry-academia partnerships",
+      "Technical mentoring abilities",
+      "Led organization-wide ML initiatives",
+      "Research-to-production translation",
+      "Framework and infrastructure development"
+    ],
+    "level_alignment": ""
+  },
+  "skills_matching": {
+    "matched_skills": [],
+    "missing_skills": [
+      "**Cloud Platforms** (AWS/GCP/Azure): Major gap for modern data science roles",
+      "**Statistical Analysis Details**: Hypothesis testing and statistical modeling not explicitly demonstrated",
+      "**Data Visualization**: No mention of visualization tools or storytelling capabilities",
+      "**MLOps Specifics**: Model monitoring and lifecycle management details unclear"
+    ],
+    "strong_areas": [
+      "**ML Frameworks (TensorFlow, PyTorch, Scikit-learn)**: 98/100 - Listed as \"comprehensive toolkit\" including XGBoost",
+      "**Data Visualization**: 65/100 - Not explicitly mentioned, inferred from academic publishing experience",
+      "**Machine Learning**: 95/100 - Comprehensive ML toolkit and large-scale implementation experience",
+      "**Deep Learning**: 95/100 - TensorFlow/PyTorch expertise with large-scale user applications",
+      "**Cloud Platforms**: 40/100 - Not mentioned, significant gap",
+      "**MLOps**: 70/100 - Research-to-production translation suggests some capability",
+      "**Technical Leadership**: 90/100 - Led ML initiatives for 10M+ users",
+      "**Mentorship Capability**: 95/100 - Currently mentoring 4 junior data scientists",
+      "**Strategic Thinking**: 85/100 - Led organization-wide ML initiatives",
+      "**Stakeholder Management**: 70/100 - Academic publishing suggests communication skills",
+      "**End-to-End Ownership**: 80/100 - Research-to-production translation experience",
+      "**Cross-functional Leadership**: 85/100 - Explicitly mentioned cross-functional collaboration",
+      "**Advanced Technical Depth**: 90/100 - Multiple frameworks and big data technologies",
+      "**Scale of Impact**: 10M+ users demonstrates enterprise-level experience",
+      "**Mentorship Active Practice**: Currently mentoring 4 data scientists (above typical senior level)",
+      "**Infrastructure Development**: Framework development shows architectural thinking",
+      "**Research-Production Bridge**: Valuable skill for innovation-driven organizations"
+    ],
+    "red_flags": [],
+    "overall_match_score": 0
+  }
+}

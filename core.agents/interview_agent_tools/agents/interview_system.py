@@ -46,7 +46,8 @@ class InterviewPreparationSystem(Agent):
         role: str,
         level: str = "Mid",
         round_number: int = 1,
-        interview_persona: str = "Friendly"
+        interview_persona: str = "Friendly",
+        num_questions: int = 8
     ) -> Dict[str, Any]:
         """Main workflow for interview preparation
         
@@ -57,6 +58,7 @@ class InterviewPreparationSystem(Agent):
             level: Experience level
             round_number: Interview round (1-4)
             interview_persona: Interview persona
+            num_questions: Number of questions to generate (default: 8)
             
         Returns:
             Complete interview preparation results
@@ -97,7 +99,8 @@ class InterviewPreparationSystem(Agent):
                 level,
                 round_number,
                 interview_persona,
-                role
+                role,
+                num_questions
             )
             
             # Step 6: Generate evaluation criteria
