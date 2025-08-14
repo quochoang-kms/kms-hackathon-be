@@ -127,14 +127,5 @@ print(f"Failed nodes: {result.failed_nodes}")
 print(f"Execution time: {result.execution_time}ms")
 print(f"Token usage: {result.accumulated_usage}")
 
-
-# Access structured responses
-if result.status == "COMPLETED":
-    jd_data = result.results["JD_ANALYZER"].result  # JDResponse object
-    cv_data = result.results["CV_ANALYZER"].result  # CVResponse object
-    skills_data = result.results["SKILL_MATCHER"].result  # SkillMatcherResponse object
-    questions_data = result.results["QUESTION_GENERATOR"].result  # QuestionGeneratorResponse object
-    
-    # Use structured data
-    print(f"Job Title: {jd_data.basic_info.job_title}")
-    print(f"Skills Match Score: {skills_data.overall_score}")
+jd_result = result.results["JD_ANALYZER"].result
+print(f"JD Analysis: {jd_result}")

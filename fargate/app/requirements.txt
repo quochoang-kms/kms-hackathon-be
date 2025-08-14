@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+strands-agents
+strands-agents-tools
+boto3
+python-multipart
+python-dotenv
+PyPDF2
+pdfplumber
+python-docx
+asyncio
+typing-extensions
+pydantic
