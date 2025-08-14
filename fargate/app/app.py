@@ -372,11 +372,23 @@ async def prepare_interview(
         logger.info("Executing multi-agent workflow")
         result = interview_graph(content_blocks)
         
+        jd_analyzer_response = result.results["JD_ANALYZER"].result.message["content"][0]["text"]
+        cv_analyzer_response = result.results["CV_ANALYZER"].result.message["content"][0]["text"]
+        
         skill_matcher_response = result.results["SKILL_MATCHER"].result.message["content"][0]["text"]
         question_generator_response = result.results["QUESTION_GENERATOR"].result.message["content"][0]["text"]
-
+        
+        jd_analyzer_parser = re.search(r'```json\s*(.*?)\s*```', jd_analyzer_response, re.DOTALL)
+        cv_analyzer_parser = re.search(r'```json\s*(.*?)\s*```', cv_analyzer_response, re.DOTALL)
         skill_match_parser = re.search(r'```json\s*(.*?)\s*```', skill_matcher_response, re.DOTALL)
         question_generator_parser = re.search(r'```json\s*(.*?)\s*```', question_generator_response, re.DOTALL)
+        
+        if jd_analyzer_parser:
+            jd_analyzer_json = json.loads(jd_analyzer_parser.group(1))
+        
+        if cv_analyzer_parser:
+            cv_analyzer_json = json.loads(cv_analyzer_parser.group(1))
+        
         if skill_match_parser:
             skill_matcher_json = json.loads(skill_match_parser.group(1))
             
@@ -387,6 +399,8 @@ async def prepare_interview(
             "status": "completed",
             "execution_time": time.time() - start_time,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "jd_analysis": jd_analyzer_json["JDResponse"],
+            "cv_analysis": cv_analyzer_json["CVResponse"],
             "skill_matcher": skill_matcher_json["SkillMatcherResponse"],
             "question_generator": question_generator_json["QuestionGeneratorResponse"],            
         }
