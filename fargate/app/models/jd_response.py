@@ -20,7 +20,8 @@ class MarketCompetitiveness(str, Enum):
 class BasicInfo(BaseModel):
     job_title: str = Field(description="Title of the job position")
     company: str = Field(description="Name of the company offering the job")
-    location: str =Field()
+    location: str = Field(description="Location of the job")
+    job_type: str 
     employment_type: str
     experience_level: str
     salary_range: Optional[str] = None

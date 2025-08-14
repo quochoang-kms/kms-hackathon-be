@@ -13,11 +13,11 @@ class ExperienceLevel(str, Enum):
 
 class CandidateProfile(BaseModel):
     full_name: str = Field(description="Full name of the candidate")
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    linkedin: Optional[str] = None
-    github: Optional[str] = None
+    email: str = Field(description="Email address of the candidate")
+    phone: str = Field(description="Phone number of the candidate")
+    location: str = Field(description="Location of the candidate")
+    linkedin: str = Field(description="LinkedIn profile URL of the candidate")
+    github: str = Field(description="GitHub profile URL of the candidate")
 
 
 class ProfessionalSummary(BaseModel):
