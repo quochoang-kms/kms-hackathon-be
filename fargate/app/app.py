@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
-from fastapi.responses import PlainTextResponse, StreamingResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Union
@@ -115,73 +115,115 @@ def create_interview_graph():
 # Global graph instance
 interview_graph = create_interview_graph()
 
-# Streaming generator function
+# Create streaming-enabled orchestrator agent
+def create_streaming_orchestrator():
+    """Create orchestrator agent with streaming capabilities"""
+    ORCHESTRATOR_PROMPT = """
+    You are an AI assistant specialized in interview preparation. Analyze the provided Job Description and CV, then provide comprehensive interview preparation including:
+    
+    1. Job Description Analysis
+    2. CV Analysis 
+    3. Skills Matching Assessment
+    4. Tailored Interview Questions
+    
+    Format your response as structured JSON with clear sections for each analysis.
+    """
+    
+    return Agent(
+        name="STREAMING_ORCHESTRATOR",
+        model=bedrock_model,
+        system_prompt=ORCHESTRATOR_PROMPT,
+        callback_handler=None  # Disable default callback for streaming
+    )
+
+# Streaming generator function using Strands native streaming
 async def stream_interview_process(processed_jd_text: str, processed_cv_text: str):
-    """Generator function that yields streaming updates during interview preparation"""
+    """Generator function that yields real-time streaming updates from Strands agents"""
     start_time = time.time()
     
     try:
         # Send start event
         yield f"data: {json.dumps({'event': 'started', 'data': {'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'), 'progress': 0}})}\n\n"
         
-        # Create content blocks
-        content_blocks = [
-            ContentBlock(text="Start Interview Preparation System"),
-            ContentBlock(
-                document={
-                    "name": "JD",
-                    "format": "txt",
-                    "source": {
-                        "bytes": processed_jd_text.encode('utf-8'),
-                    },
-                }
-            ),
-            ContentBlock(
-                document={
-                    "name": "CV",
-                    "format": "txt",
-                    "source": {
-                        "bytes": processed_cv_text.encode('utf-8'),
-                    },
-                }
-            ),
-        ]
+        # Create streaming orchestrator
+        streaming_orchestrator = create_streaming_orchestrator()
+        
+        # Prepare the query with both JD and CV content
+        query = f"""
+        Please analyze the following Job Description and CV, then provide comprehensive interview preparation:
+        
+        JOB DESCRIPTION:
+        {processed_jd_text}
+        
+        CV/RESUME:
+        {processed_cv_text}
+        
+        Please provide:
+        1. Job Description Analysis
+        2. CV Analysis 
+        3. Skills Matching Assessment
+        4. Tailored Interview Questions
+        
+        Format your response as structured JSON with clear sections for each analysis.
+        """
         
         # Send processing event
-        yield f"data: {json.dumps({'event': 'processing', 'data': {'message': 'Executing multi-agent workflow', 'progress': 10}})}\n\n"
+        yield f"data: {json.dumps({'event': 'processing', 'data': {'message': 'Starting AI analysis', 'progress': 10}})}\n\n"
         
-        # Execute the agent graph
-        result = interview_graph(content_blocks)
+        # Stream the agent's response using Strands native streaming
+        agent_stream = streaming_orchestrator.stream_async(query)
         
-        # Send agent completion events
-        yield f"data: {json.dumps({'event': 'agent_completed', 'data': {'agent': 'JD_ANALYZER', 'progress': 30}})}\n\n"
-        yield f"data: {json.dumps({'event': 'agent_completed', 'data': {'agent': 'CV_ANALYZER', 'progress': 50}})}\n\n"
-        yield f"data: {json.dumps({'event': 'agent_completed', 'data': {'agent': 'SKILL_MATCHER', 'progress': 70}})}\n\n"
-        yield f"data: {json.dumps({'event': 'agent_completed', 'data': {'agent': 'QUESTION_GENERATOR', 'progress': 90}})}\n\n"
+        current_progress = 20
+        response_chunks = []
         
-        # Process results
-        skill_matcher_response = result.results["SKILL_MATCHER"].result.message["content"][0]["text"]
-        question_generator_response = result.results["QUESTION_GENERATOR"].result.message["content"][0]["text"]
-
-        skill_match_parser = re.search(r'```json\s*(.*?)\s*```', skill_matcher_response, re.DOTALL)
-        question_generator_parser = re.search(r'```json\s*(.*?)\s*```', question_generator_response, re.DOTALL)
+        async for event in agent_stream:
+            if "data" in event:
+                # Stream text chunks as they're generated
+                chunk = event["data"]
+                response_chunks.append(chunk)
+                
+                # Send streaming text event
+                yield f"data: {json.dumps({'event': 'text_chunk', 'data': {'chunk': chunk, 'progress': current_progress}})}\n\n"
+                
+                # Gradually increase progress
+                current_progress = min(85, current_progress + 1)
+                
+            elif "current_tool_use" in event and event["current_tool_use"].get("name"):
+                # Send tool usage event
+                tool_name = event["current_tool_use"]["name"]
+                yield f"data: {json.dumps({'event': 'tool_use', 'data': {'tool': tool_name, 'progress': current_progress}})}\n\n"
         
-        skill_matcher_json = {}
-        question_generator_json = {}
+        # Combine all response chunks
+        full_response = ''.join(response_chunks)
         
-        if skill_match_parser:
-            skill_matcher_json = json.loads(skill_match_parser.group(1))
-            
-        if question_generator_parser:
-            question_generator_json = json.loads(question_generator_parser.group(1))
-       
+        # Send processing completion
+        yield f"data: {json.dumps({'event': 'processing_complete', 'data': {'message': 'Analysis complete, parsing results', 'progress': 90}})}\n\n"
+        
+        # Parse the response for structured data
+        try:
+            # Try to extract JSON from the response
+            json_match = re.search(r'```json\s*(.*?)\s*```', full_response, re.DOTALL)
+            if json_match:
+                parsed_result = json.loads(json_match.group(1))
+            else:
+                # If no JSON block found, create a structured response
+                parsed_result = {
+                    "analysis": full_response,
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+        except json.JSONDecodeError:
+            parsed_result = {
+                "analysis": full_response,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+        
         # Send final result
         final_result = {
             "status": "completed",
             "execution_time": time.time() - start_time,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "skill_matcher": skill_matcher_json.get("SkillMatcherResponse", skill_matcher_json),
-            "question_generator": question_generator_json.get("QuestionGeneratorResponse", question_generator_json),
+            "result": parsed_result,
+            "raw_response": full_response
         }
         
         yield f"data: {json.dumps({'event': 'completed', 'data': final_result, 'progress': 100})}\n\n"
@@ -349,7 +391,14 @@ async def prepare_interview(
             "question_generator": question_generator_json["QuestionGeneratorResponse"],            
         }
         
-        return response_data
+        return JSONResponse(
+            content=response_data,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
     
     except HTTPException:
         # Re-raise HTTP exceptions (validation errors)
@@ -360,12 +409,22 @@ async def prepare_interview(
         logger.error(f"Traceback: {traceback.format_exc()}")
         
         # Return error response instead of raising exception
-        return {
+        error_data = {
             "status": "error",
             "execution_time": execution_time,
             "error": str(e),
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
+        
+        return JSONResponse(
+            content=error_data,
+            status_code=500,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
 
 
 # Streaming endpoint
