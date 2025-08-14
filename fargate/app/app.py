@@ -11,6 +11,7 @@ import logging
 from dotenv import load_dotenv
 import uvicorn
 import PyPDF2
+import docx
 import io
 import re
 import time
@@ -116,8 +117,8 @@ interview_graph = create_interview_graph()
 
 # Pydantic models for request/response
 class InterviewRequest(BaseModel):
-    job_description: str
-    cv_content: str
+    job_description: Optional[str] = None
+    cv_content: Optional[str] = None
     additional_context: Optional[str] = None
 
 class InterviewResponse(BaseModel):
@@ -148,19 +149,16 @@ async def health_check():
 # File upload endpoint for handling CV/JD uploads
 @app.post("/prepare-interview")
 async def prepare_interview(
-    jd_file: UploadFile = File(...),
+    jd_text: str = Form(...),
     cv_file: UploadFile = File(...),
 ):
     """
-    Prepare interview questions using uploaded files
+    Prepare interview questions using JD text and CV file
+    JD: Text input, CV: PDF or DOCX file
     """
     start_time = time.time()
     
     try:
-        # Read file contents
-        jd_content = await jd_file.read()
-        cv_content = await cv_file.read()
-        
         # Function to extract text from PDF
         def extract_pdf_text(content: bytes, filename: str) -> str:
             try:
@@ -176,72 +174,49 @@ async def prepare_interview(
                     detail=f"Unable to extract text from PDF {filename}: {str(e)}"
                 )
         
-        # Function to safely decode text with multiple encoding attempts
-        def safe_decode(content: bytes, filename: str) -> str:
-            # List of common encodings to try
-            encodings = ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252', 'iso-8859-1']
-            
-            for encoding in encodings:
-                try:
-                    return content.decode(encoding)
-                except UnicodeDecodeError:
-                    continue
-            
-            # If all encodings fail, try with error handling
+        # Function to extract text from DOCX
+        def extract_docx_text(content: bytes, filename: str) -> str:
             try:
-                return content.decode('utf-8', errors='replace')
-            except Exception:
+                doc_file = io.BytesIO(content)
+                doc = docx.Document(doc_file)
+                text = ""
+                for paragraph in doc.paragraphs:
+                    text += paragraph.text + "\n"
+                return text.strip()
+            except Exception as e:
                 raise HTTPException(
-                    status_code=400, 
-                    detail=f"Unable to decode file {filename}. Please ensure it's a text file."
+                    status_code=400,
+                    detail=f"Unable to extract text from DOCX {filename}: {str(e)}"
                 )
         
+
         # Function to process file based on type
         def process_file(content: bytes, file: UploadFile) -> str:
             filename = file.filename.lower()
             content_type = file.content_type
             
-            # Check if it's a PDF
             if content_type == 'application/pdf' or filename.endswith('.pdf'):
                 return extract_pdf_text(content, file.filename)
-            
-            # Check if it's a text file
-            elif (content_type in ['text/plain', 'application/octet-stream'] or 
-                  any(filename.endswith(ext) for ext in ['.txt', '.md', '.text'])):
-                return safe_decode(content, file.filename)
-            
+            elif (content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or 
+                  filename.endswith('.docx')):
+                return extract_docx_text(content, file.filename)
             else:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Unsupported file type: {content_type}. Please upload PDF or text files only."
+                    detail=f"Unsupported file type: {content_type}. Please upload PDF or DOCX files only."
                 )
         
-        # Validate file types based on content type or extension
-        def validate_file_type(file: UploadFile) -> None:
-            allowed_types = ['text/plain', 'application/octet-stream', 'application/pdf']
-            allowed_extensions = ['.txt', '.md', '.text', '.pdf']
-            
-            if file.content_type not in allowed_types:
-                # Check file extension as fallback
-                if not any(file.filename.lower().endswith(ext) for ext in allowed_extensions):
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Unsupported file type: {file.content_type}. Please upload PDF or text files only."
-                    )
+        # Process inputs
+        processed_jd_text = jd_text.strip()
         
-        # Validate both files
-        validate_file_type(jd_file)
-        validate_file_type(cv_file)
+        cv_content = await cv_file.read()
+        processed_cv_text = process_file(cv_content, cv_file)
         
-        # Process files based on their type
-        jd_text = process_file(jd_content, jd_file)
-        cv_text = process_file(cv_content, cv_file)
-        
-        # Additional validation - check if decoded content makes sense
-        if len(jd_text.strip()) < 10:
+        # Additional validation - check if content makes sense
+        if len(processed_jd_text.strip()) < 10:
             raise HTTPException(status_code=400, detail="Job description appears to be too short or invalid")
         
-        if len(cv_text.strip()) < 10:
+        if len(processed_cv_text.strip()) < 10:
             raise HTTPException(status_code=400, detail="CV content appears to be too short or invalid")
         
         # Create content blocks for the graph
@@ -252,7 +227,7 @@ async def prepare_interview(
                     "name": "JD",
                     "format": "txt",
                     "source": {
-                        "bytes": jd_text.encode('utf-8'),
+                        "bytes": processed_jd_text.encode('utf-8'),
                     },
                 }
             ),
@@ -261,7 +236,7 @@ async def prepare_interview(
                     "name": "CV",
                     "format": "txt",
                     "source": {
-                        "bytes": cv_text.encode('utf-8'),
+                        "bytes": processed_cv_text.encode('utf-8'),
                     },
                 }
             ),
@@ -286,8 +261,8 @@ async def prepare_interview(
             "status": "completed",
             "execution_time": time.time() - start_time,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "skill_matcher": skill_matcher_json,
-            "question_generator": question_generator_json,            
+            "skill_matcher": skill_matcher_json["SkillMatcherResponse"],
+            "question_generator": question_generator_json["QuestionGeneratorResponse"],            
         }
         
         return response_data
