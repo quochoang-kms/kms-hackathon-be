@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Preparation Streaming Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        textarea { width: 100%; height: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        input[type="file"] { width: 100%; padding: 8px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #progress { margin: 20px 0; }
+        .progress-bar { width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #007bff; width: 0%; transition: width 0.3s; }
+        #output { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 4px; max-height: 400px; overflow-y: auto; }
+        .event { margin-bottom: 10px; padding: 5px; border-left: 3px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .streaming-text { font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Interview Preparation Streaming Test</h1>
+    
+    <form id="streamForm">
+        <div class="form-group">
+            <label for="jd_text">Job Description:</label>
+            <textarea id="jd_text" name="jd_text" placeholder="Enter job description here..." required>Senior Software Engineer - Backend Development
+
+We are seeking a Senior Software Engineer to join our backend development team. 
+You will be responsible for designing and implementing scalable microservices 
+architecture using modern technologies.
+
+Requirements:
+- 5+ years of experience in backend development
+- Strong proficiency in Python and Java
+- Experience with AWS cloud services
+- Knowledge of Docker and Kubernetes
+- Experience with PostgreSQL and Redis</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="cv_file">CV File (PDF or DOCX):</label>
+            <input type="file" id="cv_file" name="cv_file" accept=".pdf,.docx" required>
+        </div>
+        
+        <button type="submit" id="submitBtn">Start Interview Preparation</button>
+    </form>
+    
+    <div id="progress" style="display: none;">
+        <h3>Progress:</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p id="progressText">0%</p>
+    </div>
+    
+    <div id="output" style="display: none;">
+        <h3>Streaming Output:</h3>
+        <div id="events"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('streamForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressDiv = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const outputDiv = document.getElementById('output');
+        const eventsDiv = document.getElementById('events');
+
+        let streamingText = '';
+        let streamingDiv = null;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset UI
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            progressDiv.style.display = 'block';
+            outputDiv.style.display = 'block';
+            eventsDiv.innerHTML = '';
+            streamingText = '';
+            streamingDiv = null;
+            updateProgress(0);
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            
+            try {
+                // Start streaming request
+                const response = await fetch('http://localhost:8000/prepare-interview-stream', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Read streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                handleStreamEvent(data);
+                            } catch (err) {
+                                console.error('Error parsing JSON:', err);
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                addEvent('error', `Error: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Start Interview Preparation';
+            }
+        });
+
+        function handleStreamEvent(data) {
+            const { event, data: eventData } = data;
+            
+            switch (event) {
+                case 'started':
+                    addEvent('started', `Started at ${eventData.timestamp}`, 'success');
+                    updateProgress(eventData.progress || 0);
+                    break;
+                    
+                case 'processing':
+                    addEvent('processing', eventData.message, 'event');
+                    updateProgress(eventData.progress || 0);
+                    break;
+                    
+                case 'text_chunk':
+                    if (!streamingDiv) {
+                        streamingDiv = document.createElement('div');
+                        streamingDiv.className = 'event';
+                        streamingDiv.innerHTML = '<strong>[STREAMING]</strong> <div class="streaming-text"></div>';
+                        eventsDiv.appendChild(streamingDiv);
+                    }
+                    streamingText += eventData.chunk;
+                    streamingDiv.querySelector('.streaming-text').textContent = streamingText;
+                    updateProgress(eventData.progress || 0);
+                    eventsDiv.scrollTop = eventsDiv.scrollHeight;
+                    break;
+                    
+                case 'tool_use':
+                    addEvent('tool_use', `Using tool: ${eventData.tool}`, 'event');
+                    updateProgress(eventData.progress || 0);
+                    break;
+                    
+                case 'processing_complete':
+                    addEvent('processing_complete', eventData.message, 'event');
+                    updateProgress(eventData.progress || 0);
+                    break;
+                    
+                case 'completed':
+                    addEvent('completed', 'Interview preparation completed!', 'success');
+                    updateProgress(100);
+                    
+                    // Display structured results
+                    if (eventData.result) {
+                        displayStructuredResult(eventData.result);
+                    }
+                    break;
+                    
+                case 'error':
+                    addEvent('error', `Error: ${eventData.error}`, 'error');
+                    break;
+                    
+                default:
+                    addEvent('unknown', `Unknown event: ${event}`, 'event');
+            }
+        }
+
+        function displayStructuredResult(result) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'event success';
+            resultDiv.innerHTML = '<strong>[FINAL RESULT]</strong>';
+            
+            if (result.analysis) {
+                const analysisDiv = document.createElement('pre');
+                analysisDiv.style.whiteSpace = 'pre-wrap';
+                analysisDiv.style.background = '#f8f9fa';
+                analysisDiv.style.padding = '10px';
+                analysisDiv.style.marginTop = '10px';
+                analysisDiv.style.borderRadius = '4px';
+                analysisDiv.textContent = result.analysis;
+                resultDiv.appendChild(analysisDiv);
+            }
+            
+            eventsDiv.appendChild(resultDiv);
+            eventsDiv.scrollTop = eventsDiv.scrollHeight;
+        }
+
+        function addEvent(type, message, className = 'event') {
+            const eventDiv = document.createElement('div');
+            eventDiv.className = `event ${className}`;
+            eventDiv.innerHTML = `<strong>[${type.toUpperCase()}]</strong> ${message}`;
+            eventsDiv.appendChild(eventDiv);
+            eventsDiv.scrollTop = eventsDiv.scrollHeight;
+        }
+
+        function updateProgress(percentage) {
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = `${percentage}%`;
+        }
+    </script>
+</body>
+</html>
