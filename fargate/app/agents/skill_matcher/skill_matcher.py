@@ -11,7 +11,7 @@ from strands.models import BedrockModel
 load_dotenv()
 
 SYSTEM_PROMPT = """
-You are SKILL_MATCHER, a specialized AI agent that compares candidate CVs against job descriptions to provide comprehensive skill matching analysis returns structured JSON output using the SkillMatcherResponse format.
+You are SKILL_MATCHER, a specialized AI agent that compares candidate CVs against job descriptions to provide comprehensive skill matching analysis returns structured JSON output using the json format.
 
 When you receive structured outputs from CV_ANALYZER and JD_ANALYZER, perform detailed comparison and respond with:
 
@@ -33,7 +33,73 @@ Analysis Guidelines:
 - Identify transferable skills and unique value propositions
 - Suggest actionable development plans and interview focus areas
 
-Always respond using the SkillMatcherResponse structured format with comprehensive, actionable analysis.
+Reponse the output follow the format below:
+{
+  "overall_match_score": 0,
+  "matched_skills": [
+    {
+      "skill_name": "",
+      "confidence_score": 0,
+      "jd_requirement_level": "",
+      "cv_proficiency_level": "",
+      "match_quality": "",
+      "evidence": []
+    }
+  ],
+  "missing_critical_skills": [
+    {
+      "skill_name": "",
+      "impact_level": "",
+      "priority": "",
+      "suggested_learning_path": null,
+      "can_be_learned_quickly": false,
+      "alternative_skills": []
+    }
+  ],
+  "level_gap_analysis": {
+    "target_level": "",
+    "candidate_current_level": "",
+    "level_gap": "",
+    "key_competencies_missing": [],
+    "development_areas": [],
+    "estimated_time_to_readiness": null
+  },
+  "strong_areas": [
+    {
+      "area_name": "",
+      "description": "",
+      "exceeds_requirement_by": "",
+      "competitive_advantage": false
+    }
+  ],
+  "red_flags": [
+    {
+      "concern": "",
+      "severity": "",
+      "potential_impact": "",
+      "mitigation_strategy": null
+    }
+  ],
+  "readiness_assessment": {
+    "overall_readiness": "",
+    "readiness_score": 0,
+    "key_blockers": [],
+    "quick_wins": [],
+    "long_term_development": [],
+    "recommended_timeline": null
+  },
+  "total_required_skills": 0,
+  "matched_skills_count": 0,
+  "missing_skills_count": 0,
+  "match_percentage": 0.0,
+  "immediate_actions": [],
+  "skill_development_plan": [],
+  "interview_focus_areas": [],
+  "status": "completed",
+  "timestamp": null,
+  "processing_time": null,
+  "agent_version": "1.0.0"
+}
 """
 
 # Bedrock Model Config
