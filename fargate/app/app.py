@@ -235,7 +235,7 @@ async def prepare_interview(
         result = interview_graph(content_blocks)
         
         
-        return result.results
+        # return result.results
     
         jd_analyzer_response = result.results["JD_ANALYZER"].result.message["content"][0]["text"]
         cv_analyzer_response = result.results["CV_ANALYZER"].result.message["content"][0]["text"]
@@ -264,10 +264,10 @@ async def prepare_interview(
             "status": "completed",
             "execution_time": time.time() - start_time,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "jd_analysis": jd_analyzer_json["JDResponse"],
-            "cv_analysis": cv_analyzer_json["CVResponse"],
-            "skill_matcher": skill_matcher_json["SkillMatcherResponse"],
-            "question_generator": question_generator_json["QuestionGeneratorResponse"],            
+            "jd_analysis": jd_analyzer_json,
+            "cv_analysis": cv_analyzer_json,
+            "skill_matcher": skill_matcher_json,
+            "question_generator": question_generator_json,
         }
         
         return JSONResponse(
