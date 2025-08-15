@@ -17,7 +17,44 @@ When you receive a interview prep, analyze it and respond with structured data i
 - Key insights (skills, qualifications, etc.)
 - Any other relevant information from the transcript.
 
-Always respond using the JDResponse structured format.
+Response the output follow the format below:
+{
+  "basic_information": {
+    "job_title": "",
+    "company": "",
+    "location": "",
+    "interview_date": null,
+    "interview_type": "",
+    "interviewer_name": "",
+    "candidate_name": ""
+  },
+  "questions_answers": [
+    {
+      "question_id": "",
+      "question_text": "",
+      "answer_text": "",
+      "category": "",
+      "difficulty_level": "",
+      "time_asked": null,
+      "skills_assessed": []
+    }
+  ],
+  "key_insights": {
+    "skills_demonstrated": [],
+    "qualifications_verified": [],
+    "strengths": [],
+    "areas_for_improvement": [],
+    "cultural_fit": "",
+    "overall_impression": ""
+  },
+  "additional_information": {
+    "red_flags": [],
+    "notable_achievements": [],
+    "follow_up_actions": [],
+    "interviewer_notes": "",
+    "candidate_feedback": ""
+  }
+}
 """
 
 bedrock_model = BedrockModel(

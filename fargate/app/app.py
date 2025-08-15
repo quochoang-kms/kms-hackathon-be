@@ -243,22 +243,73 @@ async def prepare_interview(
         skill_matcher_response = result.results["SKILL_MATCHER"].result.message["content"][0]["text"]
         question_generator_response = result.results["QUESTION_GENERATOR"].result.message["content"][0]["text"]
         
-        jd_analyzer_parser = re.search(r'```json\s*(.*?)\s*```', jd_analyzer_response, re.DOTALL)
-        cv_analyzer_parser = re.search(r'```json\s*(.*?)\s*```', cv_analyzer_response, re.DOTALL)
-        skill_match_parser = re.search(r'```json\s*(.*?)\s*```', skill_matcher_response, re.DOTALL)
-        question_generator_parser = re.search(r'```json\s*(.*?)\s*```', question_generator_response, re.DOTALL)
+        # Initialize default values for JSON variables
+        jd_analyzer_json = None
+        cv_analyzer_json = None
+        skill_matcher_json = None
+        question_generator_json = None
         
-        if jd_analyzer_parser:
-            jd_analyzer_json = json.loads(jd_analyzer_parser.group(1))
-        
-        if cv_analyzer_parser:
-            cv_analyzer_json = json.loads(cv_analyzer_parser.group(1))
-        
-        if skill_match_parser:
-            skill_matcher_json = json.loads(skill_match_parser.group(1))
+        # Function to extract JSON from response (handles both markdown-wrapped and plain JSON)
+        def extract_json_from_response(response_text: str) -> str:
+            # First try to find JSON in markdown code blocks
+            markdown_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if markdown_match:
+                return markdown_match.group(1).strip()
             
-        if question_generator_parser:
-            question_generator_json = json.loads(question_generator_parser.group(1))
+            # If no markdown wrapper, try to extract JSON object directly
+            # Look for JSON starting with { and ending with }
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+            if json_match:
+                return json_match.group(1).strip()
+            
+            return None
+
+        # Extract JSON from agent responses
+        jd_analyzer_json_str = extract_json_from_response(jd_analyzer_response)
+        cv_analyzer_json_str = extract_json_from_response(cv_analyzer_response)
+        skill_matcher_json_str = extract_json_from_response(skill_matcher_response)
+        question_generator_json_str = extract_json_from_response(question_generator_response)
+        
+        # Parse JSON strings with error handling
+        try:
+            if jd_analyzer_json_str:
+                jd_analyzer_json = json.loads(jd_analyzer_json_str)
+            else:
+                logger.warning("No JSON found in JD analyzer response")
+                jd_analyzer_json = {"error": "No JSON response from JD analyzer", "raw_response": jd_analyzer_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JD analyzer JSON: {e}")
+            jd_analyzer_json = {"error": f"JSON parse error: {str(e)}", "raw_response": jd_analyzer_response}
+        
+        try:
+            if cv_analyzer_json_str:
+                cv_analyzer_json = json.loads(cv_analyzer_json_str)
+            else:
+                logger.warning("No JSON found in CV analyzer response")
+                cv_analyzer_json = {"error": "No JSON response from CV analyzer", "raw_response": cv_analyzer_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse CV analyzer JSON: {e}")
+            cv_analyzer_json = {"error": f"JSON parse error: {str(e)}", "raw_response": cv_analyzer_response}
+        
+        try:
+            if skill_matcher_json_str:
+                skill_matcher_json = json.loads(skill_matcher_json_str)
+            else:
+                logger.warning("No JSON found in skill matcher response")
+                skill_matcher_json = {"error": "No JSON response from skill matcher", "raw_response": skill_matcher_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse skill matcher JSON: {e}")
+            skill_matcher_json = {"error": f"JSON parse error: {str(e)}", "raw_response": skill_matcher_response}
+            
+        try:
+            if question_generator_json_str:
+                question_generator_json = json.loads(question_generator_json_str)
+            else:
+                logger.warning("No JSON found in question generator response")
+                question_generator_json = {"error": "No JSON response from question generator", "raw_response": question_generator_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse question generator JSON: {e}")
+            question_generator_json = {"error": f"JSON parse error: {str(e)}", "raw_response": question_generator_response}
        
         response_data = {
             "status": "completed",
