@@ -208,26 +208,19 @@ async def prepare_interview(
             raise HTTPException(status_code=400, detail="CV content appears to be too short or invalid")
         
         # Create content blocks for the graph
+        # Use text-based approach to avoid document name conflicts
         content_blocks = [
-            ContentBlock(text="Start Interview Preparation System"),
             ContentBlock(
-                document={
-                    "name": "JD",
-                    "format": "txt",
-                    "source": {
-                        "bytes": processed_jd_text.encode('utf-8'),
-                    },
-                }
-            ),
-            ContentBlock(
-                document={
-                    "name": "CV",
-                    "format": "txt",
-                    "source": {
-                        "bytes": processed_cv_text.encode('utf-8'),
-                    },
-                }
-            ),
+                text=f"""Start Interview Preparation System
+
+Job Description:
+{processed_jd_text}
+
+Candidate CV:
+{processed_cv_text}
+
+Please analyze both documents and coordinate with the specialized agents for comprehensive interview preparation."""
+            )
         ]
         
         # Execute the agent graph
