@@ -115,151 +115,13 @@ def create_interview_graph():
 # Global graph instance
 interview_graph = create_interview_graph()
 
-# Create streaming-enabled orchestrator agent
-def create_streaming_orchestrator():
-    """Create orchestrator agent with streaming capabilities"""
-    ORCHESTRATOR_PROMPT = """
-    You are an AI assistant specialized in interview preparation. Analyze the provided Job Description and CV, then provide comprehensive interview preparation including:
-    
-    1. Job Description Analysis
-    2. CV Analysis 
-    3. Skills Matching Assessment
-    4. Tailored Interview Questions
-    
-    Format your response as structured JSON with clear sections for each analysis.
-    """
-    
-    return Agent(
-        name="STREAMING_ORCHESTRATOR",
-        model=bedrock_model,
-        system_prompt=ORCHESTRATOR_PROMPT,
-        callback_handler=None  # Disable default callback for streaming
-    )
 
-# Streaming generator function using Strands native streaming
-async def stream_interview_process(processed_jd_text: str, processed_cv_text: str):
-    """Generator function that yields real-time streaming updates from Strands agents"""
-    start_time = time.time()
-    
-    try:
-        # Send start event
-        yield f"data: {json.dumps({'event': 'started', 'data': {'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'), 'progress': 0}})}\n\n"
-        
-        # Create streaming orchestrator
-        streaming_orchestrator = create_streaming_orchestrator()
-        
-        # Prepare the query with both JD and CV content
-        query = f"""
-        Please analyze the following Job Description and CV, then provide comprehensive interview preparation:
-        
-        JOB DESCRIPTION:
-        {processed_jd_text}
-        
-        CV/RESUME:
-        {processed_cv_text}
-        
-        Please provide:
-        1. Job Description Analysis
-        2. CV Analysis 
-        3. Skills Matching Assessment
-        4. Tailored Interview Questions
-        
-        Format your response as structured JSON with clear sections for each analysis.
-        """
-        
-        # Send processing event
-        yield f"data: {json.dumps({'event': 'processing', 'data': {'message': 'Starting AI analysis', 'progress': 10}})}\n\n"
-        
-        # Stream the agent's response using Strands native streaming
-        agent_stream = streaming_orchestrator.stream_async(query)
-        
-        current_progress = 20
-        response_chunks = []
-        
-        async for event in agent_stream:
-            if "data" in event:
-                # Stream text chunks as they're generated
-                chunk = event["data"]
-                response_chunks.append(chunk)
-                
-                # Send streaming text event
-                yield f"data: {json.dumps({'event': 'text_chunk', 'data': {'chunk': chunk, 'progress': current_progress}})}\n\n"
-                
-                # Gradually increase progress
-                current_progress = min(85, current_progress + 1)
-                
-            elif "current_tool_use" in event and event["current_tool_use"].get("name"):
-                # Send tool usage event
-                tool_name = event["current_tool_use"]["name"]
-                yield f"data: {json.dumps({'event': 'tool_use', 'data': {'tool': tool_name, 'progress': current_progress}})}\n\n"
-        
-        # Combine all response chunks
-        full_response = ''.join(response_chunks)
-        
-        # Send processing completion
-        yield f"data: {json.dumps({'event': 'processing_complete', 'data': {'message': 'Analysis complete, parsing results', 'progress': 90}})}\n\n"
-        
-        # Parse the response for structured data
-        try:
-            # Try to extract JSON from the response
-            json_match = re.search(r'```json\s*(.*?)\s*```', full_response, re.DOTALL)
-            if json_match:
-                parsed_result = json.loads(json_match.group(1))
-            else:
-                # If no JSON block found, create a structured response
-                parsed_result = {
-                    "analysis": full_response,
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
-        except json.JSONDecodeError:
-            parsed_result = {
-                "analysis": full_response,
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-            }
-        
-        # Send final result
-        final_result = {
-            "status": "completed",
-            "execution_time": time.time() - start_time,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "result": parsed_result,
-            "raw_response": full_response
-        }
-        
-        yield f"data: {json.dumps({'event': 'completed', 'data': final_result, 'progress': 100})}\n\n"
-        
-    except Exception as e:
-        error_data = {
-            "error": str(e),
-            "execution_time": time.time() - start_time,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        yield f"data: {json.dumps({'event': 'error', 'data': error_data})}\n\n"
-
-# Pydantic models for request/response
-class InterviewRequest(BaseModel):
-    job_description: Optional[str] = None
-    cv_content: Optional[str] = None
-    additional_context: Optional[str] = None
-
-class InterviewResponse(BaseModel):
-    status: str
-    execution_time: Optional[float] = None
-    jd_analysis: Optional[JDResponse] = None
-    cv_analysis: Optional[CVResponse] = None
-    skills_matching: Optional[SkillMatcherResponse] = None
-    questions: Optional[QuestionGeneratorResponse] = None
-    summary: Optional[dict] = None
 
 class HealthResponse(BaseModel):
     status: str
     service: str
     version: str
 
-class StreamEvent(BaseModel):
-    event: str
-    data: dict
-    timestamp: Optional[str] = None
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
@@ -372,6 +234,9 @@ async def prepare_interview(
         logger.info("Executing multi-agent workflow")
         result = interview_graph(content_blocks)
         
+        
+        return result.results
+    
         jd_analyzer_response = result.results["JD_ANALYZER"].result.message["content"][0]["text"]
         cv_analyzer_response = result.results["CV_ANALYZER"].result.message["content"][0]["text"]
         
@@ -440,104 +305,6 @@ async def prepare_interview(
             }
         )
 
-
-# Streaming endpoint
-@app.post("/prepare-interview-stream")
-async def prepare_interview_stream(
-    jd_text: str = Form(...),
-    cv_file: UploadFile = File(...),
-):
-    """
-    Prepare interview questions with streaming updates
-    JD: Text input, CV: PDF or DOCX file
-    Returns Server-Sent Events stream
-    
-    Required form fields:
-    - jd_text: Job description as text
-    - cv_file: CV file (PDF or DOCX)
-    """
-    try:
-        # Validate inputs exist
-        if not jd_text or not jd_text.strip():
-            raise HTTPException(status_code=400, detail="jd_text is required")
-        
-        if not cv_file or not cv_file.filename:
-            raise HTTPException(status_code=400, detail="cv_file is required")
-        # Function to extract text from PDF
-        def extract_pdf_text(content: bytes, filename: str) -> str:
-            try:
-                pdf_file = io.BytesIO(content)
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
-                text = ""
-                for page in pdf_reader.pages:
-                    text += page.extract_text() + "\n"
-                return text.strip()
-            except Exception as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Unable to extract text from PDF {filename}: {str(e)}"
-                )
-        
-        # Function to extract text from DOCX
-        def extract_docx_text(content: bytes, filename: str) -> str:
-            try:
-                doc_file = io.BytesIO(content)
-                doc = docx.Document(doc_file)
-                text = ""
-                for paragraph in doc.paragraphs:
-                    text += paragraph.text + "\n"
-                return text.strip()
-            except Exception as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Unable to extract text from DOCX {filename}: {str(e)}"
-                )
-        
-        # Function to process file based on type
-        def process_file(content: bytes, file: UploadFile) -> str:
-            filename = file.filename.lower()
-            content_type = file.content_type
-            
-            if content_type == 'application/pdf' or filename.endswith('.pdf'):
-                return extract_pdf_text(content, file.filename)
-            elif (content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or 
-                  filename.endswith('.docx')):
-                return extract_docx_text(content, file.filename)
-            else:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Unsupported file type: {content_type}. Please upload PDF or DOCX files only."
-                )
-        
-        # Process inputs
-        processed_jd_text = jd_text.strip()
-        cv_content = await cv_file.read()
-        processed_cv_text = process_file(cv_content, cv_file)
-        
-        # Validation
-        if len(processed_jd_text.strip()) < 10:
-            raise HTTPException(status_code=400, detail="Job description appears to be too short or invalid")
-        
-        if len(processed_cv_text.strip()) < 10:
-            raise HTTPException(status_code=400, detail="CV content appears to be too short or invalid")
-        
-        # Return streaming response
-        return StreamingResponse(
-            stream_interview_process(processed_jd_text, processed_cv_text),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "*",
-            }
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Streaming setup failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
