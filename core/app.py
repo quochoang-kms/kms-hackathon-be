@@ -115,151 +115,13 @@ def create_interview_graph():
 # Global graph instance
 interview_graph = create_interview_graph()
 
-# Create streaming-enabled orchestrator agent
-def create_streaming_orchestrator():
-    """Create orchestrator agent with streaming capabilities"""
-    ORCHESTRATOR_PROMPT = """
-    You are an AI assistant specialized in interview preparation. Analyze the provided Job Description and CV, then provide comprehensive interview preparation including:
-    
-    1. Job Description Analysis
-    2. CV Analysis 
-    3. Skills Matching Assessment
-    4. Tailored Interview Questions
-    
-    Format your response as structured JSON with clear sections for each analysis.
-    """
-    
-    return Agent(
-        name="STREAMING_ORCHESTRATOR",
-        model=bedrock_model,
-        system_prompt=ORCHESTRATOR_PROMPT,
-        callback_handler=None  # Disable default callback for streaming
-    )
 
-# Streaming generator function using Strands native streaming
-async def stream_interview_process(processed_jd_text: str, processed_cv_text: str):
-    """Generator function that yields real-time streaming updates from Strands agents"""
-    start_time = time.time()
-    
-    try:
-        # Send start event
-        yield f"data: {json.dumps({'event': 'started', 'data': {'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'), 'progress': 0}})}\n\n"
-        
-        # Create streaming orchestrator
-        streaming_orchestrator = create_streaming_orchestrator()
-        
-        # Prepare the query with both JD and CV content
-        query = f"""
-        Please analyze the following Job Description and CV, then provide comprehensive interview preparation:
-        
-        JOB DESCRIPTION:
-        {processed_jd_text}
-        
-        CV/RESUME:
-        {processed_cv_text}
-        
-        Please provide:
-        1. Job Description Analysis
-        2. CV Analysis 
-        3. Skills Matching Assessment
-        4. Tailored Interview Questions
-        
-        Format your response as structured JSON with clear sections for each analysis.
-        """
-        
-        # Send processing event
-        yield f"data: {json.dumps({'event': 'processing', 'data': {'message': 'Starting AI analysis', 'progress': 10}})}\n\n"
-        
-        # Stream the agent's response using Strands native streaming
-        agent_stream = streaming_orchestrator.stream_async(query)
-        
-        current_progress = 20
-        response_chunks = []
-        
-        async for event in agent_stream:
-            if "data" in event:
-                # Stream text chunks as they're generated
-                chunk = event["data"]
-                response_chunks.append(chunk)
-                
-                # Send streaming text event
-                yield f"data: {json.dumps({'event': 'text_chunk', 'data': {'chunk': chunk, 'progress': current_progress}})}\n\n"
-                
-                # Gradually increase progress
-                current_progress = min(85, current_progress + 1)
-                
-            elif "current_tool_use" in event and event["current_tool_use"].get("name"):
-                # Send tool usage event
-                tool_name = event["current_tool_use"]["name"]
-                yield f"data: {json.dumps({'event': 'tool_use', 'data': {'tool': tool_name, 'progress': current_progress}})}\n\n"
-        
-        # Combine all response chunks
-        full_response = ''.join(response_chunks)
-        
-        # Send processing completion
-        yield f"data: {json.dumps({'event': 'processing_complete', 'data': {'message': 'Analysis complete, parsing results', 'progress': 90}})}\n\n"
-        
-        # Parse the response for structured data
-        try:
-            # Try to extract JSON from the response
-            json_match = re.search(r'```json\s*(.*?)\s*```', full_response, re.DOTALL)
-            if json_match:
-                parsed_result = json.loads(json_match.group(1))
-            else:
-                # If no JSON block found, create a structured response
-                parsed_result = {
-                    "analysis": full_response,
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
-        except json.JSONDecodeError:
-            parsed_result = {
-                "analysis": full_response,
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-            }
-        
-        # Send final result
-        final_result = {
-            "status": "completed",
-            "execution_time": time.time() - start_time,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "result": parsed_result,
-            "raw_response": full_response
-        }
-        
-        yield f"data: {json.dumps({'event': 'completed', 'data': final_result, 'progress': 100})}\n\n"
-        
-    except Exception as e:
-        error_data = {
-            "error": str(e),
-            "execution_time": time.time() - start_time,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        yield f"data: {json.dumps({'event': 'error', 'data': error_data})}\n\n"
-
-# Pydantic models for request/response
-class InterviewRequest(BaseModel):
-    job_description: Optional[str] = None
-    cv_content: Optional[str] = None
-    additional_context: Optional[str] = None
-
-class InterviewResponse(BaseModel):
-    status: str
-    execution_time: Optional[float] = None
-    jd_analysis: Optional[JDResponse] = None
-    cv_analysis: Optional[CVResponse] = None
-    skills_matching: Optional[SkillMatcherResponse] = None
-    questions: Optional[QuestionGeneratorResponse] = None
-    summary: Optional[dict] = None
 
 class HealthResponse(BaseModel):
     status: str
     service: str
     version: str
 
-class StreamEvent(BaseModel):
-    event: str
-    data: dict
-    timestamp: Optional[str] = None
 
 # Health check endpoint
 @app.get("/health", response_model=HealthResponse)
@@ -273,13 +135,13 @@ async def health_check():
 
 
 # File upload endpoint for handling CV/JD uploads
-@app.post("/prepare-interview-original")
-async def prepare_interview_original(
+@app.post("/prepare-interview")
+async def prepare_interview(
     jd_text: str = Form(...),
     cv_file: UploadFile = File(...),
 ):
     """
-    BACKUP: Original prepare interview questions using JD text and CV file
+    Prepare interview questions using JD text and CV file
     JD: Text input, CV: PDF or DOCX file
     """
     start_time = time.time()
@@ -346,63 +208,110 @@ async def prepare_interview_original(
             raise HTTPException(status_code=400, detail="CV content appears to be too short or invalid")
         
         # Create content blocks for the graph
+        # Use text-based approach to avoid document name conflicts
         content_blocks = [
-            ContentBlock(text="Start Interview Preparation System"),
             ContentBlock(
-                document={
-                    "name": "JD",
-                    "format": "txt",
-                    "source": {
-                        "bytes": processed_jd_text.encode('utf-8'),
-                    },
-                }
-            ),
-            ContentBlock(
-                document={
-                    "name": "CV",
-                    "format": "txt",
-                    "source": {
-                        "bytes": processed_cv_text.encode('utf-8'),
-                    },
-                }
-            ),
+                text=f"""Start Interview Preparation System
+                        Job Description:
+                        {processed_jd_text}
+
+                        Candidate CV:
+                        {processed_cv_text}
+
+                        Please analyze both documents and coordinate with the specialized agents for comprehensive interview preparation.
+                    """
+            )
         ]
         
         # Execute the agent graph
         logger.info("Executing multi-agent workflow")
         result = interview_graph(content_blocks)
         
+        
+        # return result.results
+    
         jd_analyzer_response = result.results["JD_ANALYZER"].result.message["content"][0]["text"]
         cv_analyzer_response = result.results["CV_ANALYZER"].result.message["content"][0]["text"]
         
         skill_matcher_response = result.results["SKILL_MATCHER"].result.message["content"][0]["text"]
         question_generator_response = result.results["QUESTION_GENERATOR"].result.message["content"][0]["text"]
         
-        jd_analyzer_parser = re.search(r'```json\s*(.*?)\s*```', jd_analyzer_response, re.DOTALL)
-        cv_analyzer_parser = re.search(r'```json\s*(.*?)\s*```', cv_analyzer_response, re.DOTALL)
-        skill_match_parser = re.search(r'```json\s*(.*?)\s*```', skill_matcher_response, re.DOTALL)
-        question_generator_parser = re.search(r'```json\s*(.*?)\s*```', question_generator_response, re.DOTALL)
+        # Initialize default values for JSON variables
+        jd_analyzer_json = None
+        cv_analyzer_json = None
+        skill_matcher_json = None
+        question_generator_json = None
         
-        if jd_analyzer_parser:
-            jd_analyzer_json = json.loads(jd_analyzer_parser.group(1))
-        
-        if cv_analyzer_parser:
-            cv_analyzer_json = json.loads(cv_analyzer_parser.group(1))
-        
-        if skill_match_parser:
-            skill_matcher_json = json.loads(skill_match_parser.group(1))
+        # Function to extract JSON from response (handles both markdown-wrapped and plain JSON)
+        def extract_json_from_response(response_text: str) -> str:
+            # First try to find JSON in markdown code blocks
+            markdown_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+            if markdown_match:
+                return markdown_match.group(1).strip()
             
-        if question_generator_parser:
-            question_generator_json = json.loads(question_generator_parser.group(1))
+            # If no markdown wrapper, try to extract JSON object directly
+            # Look for JSON starting with { and ending with }
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+            if json_match:
+                return json_match.group(1).strip()
+            
+            return None
+
+        # Extract JSON from agent responses
+        jd_analyzer_json_str = extract_json_from_response(jd_analyzer_response)
+        cv_analyzer_json_str = extract_json_from_response(cv_analyzer_response)
+        skill_matcher_json_str = extract_json_from_response(skill_matcher_response)
+        question_generator_json_str = extract_json_from_response(question_generator_response)
+        
+        # Parse JSON strings with error handling
+        try:
+            if jd_analyzer_json_str:
+                jd_analyzer_json = json.loads(jd_analyzer_json_str)
+            else:
+                logger.warning("No JSON found in JD analyzer response")
+                jd_analyzer_json = {"error": "No JSON response from JD analyzer", "raw_response": jd_analyzer_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JD analyzer JSON: {e}")
+            jd_analyzer_json = {"error": f"JSON parse error: {str(e)}", "raw_response": jd_analyzer_response}
+        
+        try:
+            if cv_analyzer_json_str:
+                cv_analyzer_json = json.loads(cv_analyzer_json_str)
+            else:
+                logger.warning("No JSON found in CV analyzer response")
+                cv_analyzer_json = {"error": "No JSON response from CV analyzer", "raw_response": cv_analyzer_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse CV analyzer JSON: {e}")
+            cv_analyzer_json = {"error": f"JSON parse error: {str(e)}", "raw_response": cv_analyzer_response}
+        
+        try:
+            if skill_matcher_json_str:
+                skill_matcher_json = json.loads(skill_matcher_json_str)
+            else:
+                logger.warning("No JSON found in skill matcher response")
+                skill_matcher_json = {"error": "No JSON response from skill matcher", "raw_response": skill_matcher_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse skill matcher JSON: {e}")
+            skill_matcher_json = {"error": f"JSON parse error: {str(e)}", "raw_response": skill_matcher_response}
+            
+        try:
+            if question_generator_json_str:
+                question_generator_json = json.loads(question_generator_json_str)
+            else:
+                logger.warning("No JSON found in question generator response")
+                question_generator_json = {"error": "No JSON response from question generator", "raw_response": question_generator_response}
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse question generator JSON: {e}")
+            question_generator_json = {"error": f"JSON parse error: {str(e)}", "raw_response": question_generator_response}
        
         response_data = {
             "status": "completed",
             "execution_time": time.time() - start_time,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "jd_analysis": jd_analyzer_json["JDResponse"],
-            "cv_analysis": cv_analyzer_json["CVResponse"],
-            "skill_matcher": skill_matcher_json["SkillMatcherResponse"],
-            "question_generator": question_generator_json["QuestionGeneratorResponse"],            
+            "jd_analysis": jd_analyzer_json,
+            "cv_analysis": cv_analyzer_json,
+            "skill_matcher": skill_matcher_json,
+            "question_generator": question_generator_json,
         }
         
         return JSONResponse(
@@ -439,6 +348,7 @@ async def prepare_interview_original(
                 "Access-Control-Allow-Headers": "*",
             }
         )
+
 
 
 if __name__ == "__main__":
