@@ -1,1 +1,0 @@
-from .jd_analyzer import jd_analyzer
