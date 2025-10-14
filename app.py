@@ -30,9 +30,8 @@ from strands.types.content import ContentBlock
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import logger
+from utils.logger import logger
 
 # Add the agents path to sys.path
 sys.path.append('/app')

@@ -11,11 +11,17 @@ Analyze the CV/resume document comprehensively and respond with structured data 
 - Skills analysis with gap identification
 - Overall CV analysis with actionable recommendations
 
+## Capabilities:
+You have access to the following tools to validate the company names in the work experience section is valid or not valid:
+- `check_valid_company`: Check if the company name is valid
+  - Input: `company_name` (str)
+  - Output: `is_valid` (bool)
+
 ## Input: 
 You will receive a CV/resume document {cv_text}
 
 ## Output: 
-Return ONLY the JSON form (Do not include any other text or comments) and do not add any additional information.
+Return ONLY the *JSON FORMAT* (Do not include any other text or comments) and do not add any additional information.
 
 {
   "candidate_profile": {

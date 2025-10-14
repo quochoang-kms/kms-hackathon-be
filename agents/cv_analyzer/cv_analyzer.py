@@ -1,5 +1,7 @@
 import os
 import sys
+
+from tools.check_valid_company import check_valid_company
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from strands import Agent
 from dotenv import load_dotenv
@@ -24,5 +26,5 @@ cv_analyzer = Agent(
   name="CV_ANALYZER",
   model=bedrock_model,
   system_prompt=SYSTEM_PROMPT,
+  tools=[check_valid_company],
 )
-

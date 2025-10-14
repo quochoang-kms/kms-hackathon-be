@@ -25,7 +25,7 @@ Compare candidate CVs against job descriptions to provide comprehensive skill ma
 You will receive a job description {jd_text} and candidate CV {cv_text}
 
 ## Output:
-Return ONLY the JSON form (Do not include any other text or comments) and do not add any additional information.
+Return ONLY the *JSON FORMAT* (Do not include any other text or comments) and do not add any additional information.
 
 {
   "overall_match_score": 0,
