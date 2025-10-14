@@ -8,7 +8,7 @@ valid_companies = [
     "Amazon",
     "Facebook",
     "Twitter",
-    "DXC Technology",
+    "DXC Technology", # Happy Case
     "IBM",
     "Accenture",
     "TCS",
