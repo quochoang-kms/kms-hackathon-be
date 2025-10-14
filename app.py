@@ -9,12 +9,10 @@ import asyncio
 import json
 import logging
 from dotenv import load_dotenv
+from utils.extractor import extract_docx_text, extract_pdf_text, process_file
 import uvicorn
-import PyPDF2
-import docx
-import io
+
 import re
-import time
 import traceback
 
 from strands import Agent
@@ -23,7 +21,6 @@ from agents.jd_analyzer.jd_analyzer import jd_analyzer
 from agents.cv_analyzer.cv_analyzer import cv_analyzer  
 from agents.skill_matcher.skill_matcher import skill_matcher
 from agents.question_generator.question_generator import question_generator
-from models import JDResponse, CVResponse, SkillMatcherResponse, QuestionGeneratorResponse
 from conditions.conditions import is_matched_skill, is_analyzer_done, is_skill_matching_done
 
 from strands.multiagent import GraphBuilder
@@ -66,23 +63,11 @@ bedrock_model = BedrockModel(
 def create_interview_graph():
     """Create and configure the interview preparation agent graph"""
         
-    ORCHESTRATOR_PROMPT = """
-    You are the ORCHESTRATOR, a routing agent that coordinates multiple specialized AI agents in an interview preparation system.
+    # Load system prompt from file
+    system_prompt_path = os.path.join(os.path.dirname(__file__), 'agents/orchestrator/SYSTEM_PROMPT.md')
+    with open(system_prompt_path, 'r') as f:
+        ORCHESTRATOR_PROMPT = f.read()
 
-    Your role is to:
-    1. Analyze incoming requests and documents (JD, CV)
-    2. Route tasks to appropriate specialized agents:
-       - JD_ANALYZER: For job description analysis
-       - CV_ANALYZER: For candidate CV/resume analysis
-       - SKILL_MATCHER: For matching skills between JD and CV
-       - QUESTION_GENERATOR: For generating tailored interview questions
-    3. Coordinate the workflow between agents
-    4. Ensure proper data flow and task completion
-
-    When you receive documents, determine which agents need to process them and route accordingly.
-    Always maintain context and ensure all necessary agents are activated for comprehensive analysis.
-    The workflow should be: JD_ANALYZER & CV_ANALYZER → SKILL_MATCHER → QUESTION_GENERATOR
-    """
     
     orchestrator = Agent(
         name="ORCHESTRATOR",
@@ -116,7 +101,6 @@ def create_interview_graph():
 interview_graph = create_interview_graph()
 
 
-
 class HealthResponse(BaseModel):
     status: str
     service: str
@@ -137,65 +121,43 @@ async def health_check():
 # File upload endpoint for handling CV/JD uploads
 @app.post("/prepare-interview")
 async def prepare_interview(
-    jd_text: str = Form(...),
+    title: str = Form(...),
+    level: str = Form(...),
+    jd_file: Optional[UploadFile] = File(None),
+    jd_text: Optional[str] = Form(None),
     cv_file: UploadFile = File(...),
 ):
     """
     Prepare interview questions using JD text and CV file
-    JD: Text input, CV: PDF or DOCX file
+    JD: Can be either text input or file (PDF/DOCX), CV: PDF or DOCX file
     """
-    start_time = time.time()
-    
-    try:
-        # Function to extract text from PDF
-        def extract_pdf_text(content: bytes, filename: str) -> str:
-            try:
-                pdf_file = io.BytesIO(content)
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
-                text = ""
-                for page in pdf_reader.pages:
-                    text += page.extract_text() + "\n"
-                return text.strip()
-            except Exception as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Unable to extract text from PDF {filename}: {str(e)}"
-                )
-        
-        # Function to extract text from DOCX
-        def extract_docx_text(content: bytes, filename: str) -> str:
-            try:
-                doc_file = io.BytesIO(content)
-                doc = docx.Document(doc_file)
-                text = ""
-                for paragraph in doc.paragraphs:
-                    text += paragraph.text + "\n"
-                return text.strip()
-            except Exception as e:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Unable to extract text from DOCX {filename}: {str(e)}"
-                )
-        
 
-        # Function to process file based on type
-        def process_file(content: bytes, file: UploadFile) -> str:
-            filename = file.filename.lower()
-            content_type = file.content_type
-            
-            if content_type == 'application/pdf' or filename.endswith('.pdf'):
-                return extract_pdf_text(content, file.filename)
-            elif (content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or 
-                  filename.endswith('.docx')):
-                return extract_docx_text(content, file.filename)
-            else:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Unsupported file type: {content_type}. Please upload PDF or DOCX files only."
-                )
+    try:
+        # Validate that at least one JD input is provided
+        if not jd_file and not jd_text:
+            raise HTTPException(
+                status_code=400, 
+                detail="Either jd_file or jd_text must be provided"
+            )
         
-        # Process inputs
-        processed_jd_text = jd_text.strip()
+        # Process JD input
+        processed_jd_text = ""
+        if jd_file is not None and jd_file.filename:
+            # Read JD file content as bytes first
+            jd_content = await jd_file.read()
+            # check if the file is pdf
+            if jd_file.filename.endswith('.pdf'):
+                processed_jd_text = extract_pdf_text(jd_content, jd_file.filename)
+            elif jd_file.filename.endswith('.docx'):
+                processed_jd_text = extract_docx_text(jd_content, jd_file.filename)
+            else:
+                raise HTTPException(status_code=400, detail="Unsupported file type: Please upload PDF or DOCX files only.")
+        elif jd_text:
+            # Use text input if provided
+            processed_jd_text = jd_text.strip()
+        
+        # Final validation of JD text
+        processed_jd_text = processed_jd_text.strip()
         
         cv_content = await cv_file.read()
         processed_cv_text = process_file(cv_content, cv_file)
@@ -212,14 +174,17 @@ async def prepare_interview(
         content_blocks = [
             ContentBlock(
                 text=f"""Start Interview Preparation System
+                Title: {title}
 
-Job Description:
-{processed_jd_text}
+                Level: {level}
 
-Candidate CV:
-{processed_cv_text}
+                Job Description:
+                {processed_jd_text}
 
-Please analyze both documents and coordinate with the specialized agents for comprehensive interview preparation."""
+                Candidate CV:
+                {processed_cv_text}
+
+                Please analyze both documents and coordinate with the specialized agents for comprehensive interview preparation."""
             )
         ]
         
@@ -306,8 +271,6 @@ Please analyze both documents and coordinate with the specialized agents for com
        
         response_data = {
             "status": "completed",
-            "execution_time": time.time() - start_time,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "jd_analysis": jd_analyzer_json,
             "cv_analysis": cv_analyzer_json,
             "skill_matcher": skill_matcher_json,
@@ -327,16 +290,13 @@ Please analyze both documents and coordinate with the specialized agents for com
         # Re-raise HTTP exceptions (validation errors)
         raise
     except Exception as e:
-        execution_time = time.time() - start_time
-        logger.error(f"File processing failed after {execution_time:.2f} seconds: {str(e)}")
+        logger.error(f"File processing failed: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         
         # Return error response instead of raising exception
         error_data = {
             "status": "error",
-            "execution_time": execution_time,
             "error": str(e),
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         
         return JSONResponse(
