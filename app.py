@@ -21,7 +21,7 @@ from agents.jd_analyzer.jd_analyzer import jd_analyzer
 from agents.cv_analyzer.cv_analyzer import cv_analyzer  
 from agents.skill_matcher.skill_matcher import skill_matcher
 from agents.question_generator.question_generator import question_generator
-from conditions.conditions import is_matched_skill, is_analyzer_done, is_skill_matching_done
+from conditions.conditions import is_matched_skill, is_analyzer_done
 
 from strands.multiagent import GraphBuilder
 from strands.models import BedrockModel
@@ -89,7 +89,7 @@ def create_interview_graph():
     builder.add_edge("ORCHESTRATOR", "CV_ANALYZER")
     builder.add_edge("JD_ANALYZER", "SKILL_MATCHER", condition=is_analyzer_done)
     builder.add_edge("CV_ANALYZER", "SKILL_MATCHER", condition=is_analyzer_done)
-    builder.add_edge("SKILL_MATCHER", "QUESTION_GENERATOR", condition=is_skill_matching_done)
+    builder.add_edge("SKILL_MATCHER", "QUESTION_GENERATOR", condition=is_matched_skill)
 
     # Define the entry point for the orchestrator
     builder.set_entry_point("ORCHESTRATOR")

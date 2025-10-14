@@ -1,10 +1,13 @@
 import os
 import sys
+
+from providers.providers import model_provider
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from strands import Agent
 from dotenv import load_dotenv
 from strands.models import BedrockModel
+from strands.models.openai import OpenAIModel
 
 # Load environment variables
 load_dotenv()
@@ -20,9 +23,14 @@ bedrock_model = BedrockModel(
   region_name=os.getenv("REGION_NAME"),
 )
 
+openai_model = OpenAIModel(
+    client_args={"api_key": os.getenv("OPENAI_API_KEY")},
+    model_id="gpt-4o-mini",
+)
+
 # QUESTION_GENERATOR Agent
 question_generator = Agent(
   name="QUESTION_GENERATOR",
-  model=bedrock_model,
+  model=openai_model,
   system_prompt=SYSTEM_PROMPT,
 )
