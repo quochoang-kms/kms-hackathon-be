@@ -9,6 +9,7 @@ import asyncio
 import json
 import logging
 from dotenv import load_dotenv
+from strands.models.openai import OpenAIModel
 from utils.extractor import extract_docx_text, extract_pdf_text, process_file
 import uvicorn
 
@@ -58,6 +59,11 @@ bedrock_model = BedrockModel(
     region_name=os.getenv("REGION_NAME"),
 )
 
+openai_model = OpenAIModel(
+    client_args={"api_key": os.getenv("OPENAI_API_KEY")},
+    model_id="gpt-4.1",
+)
+
 # Initialize the multi-agent graph
 def create_interview_graph():
     """Create and configure the interview preparation agent graph"""
@@ -70,7 +76,7 @@ def create_interview_graph():
     
     orchestrator = Agent(
         name="ORCHESTRATOR",
-        model=bedrock_model,
+        model=openai_model,
         system_prompt=ORCHESTRATOR_PROMPT,
     )
 

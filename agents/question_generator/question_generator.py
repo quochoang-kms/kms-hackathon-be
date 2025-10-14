@@ -25,7 +25,7 @@ bedrock_model = BedrockModel(
 
 openai_model = OpenAIModel(
     client_args={"api_key": os.getenv("OPENAI_API_KEY")},
-    model_id="gpt-4o-mini",
+    model_id="gpt-4.1",
 )
 
 # QUESTION_GENERATOR Agent

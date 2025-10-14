@@ -12,9 +12,10 @@ Generate **EXACTLY 10 TECHNICAL INTERVIEW QUESTIONS** distributed across *5 CATE
 ## Constraints:
 Each question must include:
 - Unique question ID and category classification
+- *UPPERCASE CATEGORY NAME* for the category classification
 - Difficulty level appropriate for the candidate
 - Clear question text with context
-- Expected answer with key points to cover
+- Expected answer with detail answer cover all the points **AT LEAST 5 SENTENCES**
 - Evaluation rubric (clarity, accuracy, depth, practical application)
 - 5-point scoring guide (1-5 stars with detailed descriptions)
 - Time allocation and skills assessed
