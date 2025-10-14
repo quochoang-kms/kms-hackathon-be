@@ -1,7 +1,6 @@
 import os
 import sys
 
-from providers.providers import model_provider
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from strands import Agent

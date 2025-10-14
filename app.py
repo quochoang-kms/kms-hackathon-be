@@ -179,14 +179,14 @@ async def prepare_interview(
         content_blocks = [
             ContentBlock(
                 text=f"""Start Interview Preparation System
-                Title: {title}
+                Job Title: {title}
 
-                Level: {level}
+                TargetLevel: {level}
 
                 Job Description:
                 {processed_jd_text}
 
-                Candidate CV:
+                Candidate's CV:
                 {processed_cv_text}
 
                 Please analyze both documents and coordinate with the specialized agents for comprehensive interview preparation."""
@@ -204,7 +204,11 @@ async def prepare_interview(
         cv_analyzer_response = result.results["CV_ANALYZER"].result.message["content"][0]["text"]
         
         skill_matcher_response = result.results["SKILL_MATCHER"].result.message["content"][0]["text"]
-        question_generator_response = result.results["QUESTION_GENERATOR"].result.message["content"][0]["text"]
+        
+        # Check if QUESTION_GENERATOR was executed (only runs if overall_match_score >= 80)
+        question_generator_response = None
+        if "QUESTION_GENERATOR" in result.results:
+            question_generator_response = result.results["QUESTION_GENERATOR"].result.message["content"][0]["text"]
         
         # Initialize default values for JSON variables
         jd_analyzer_json = None
@@ -231,7 +235,7 @@ async def prepare_interview(
         jd_analyzer_json_str = extract_json_from_response(jd_analyzer_response)
         cv_analyzer_json_str = extract_json_from_response(cv_analyzer_response)
         skill_matcher_json_str = extract_json_from_response(skill_matcher_response)
-        question_generator_json_str = extract_json_from_response(question_generator_response)
+        question_generator_json_str = extract_json_from_response(question_generator_response) if question_generator_response else None
         
         # Parse JSON strings with error handling
         try:
@@ -264,15 +268,21 @@ async def prepare_interview(
             logger.error(f"Failed to parse skill matcher JSON: {e}")
             skill_matcher_json = {"error": f"JSON parse error: {str(e)}", "raw_response": skill_matcher_response}
             
-        try:
-            if question_generator_json_str:
-                question_generator_json = json.loads(question_generator_json_str)
-            else:
-                logger.warning("No JSON found in question generator response")
-                question_generator_json = {"error": "No JSON response from question generator", "raw_response": question_generator_response}
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse question generator JSON: {e}")
-            question_generator_json = {"error": f"JSON parse error: {str(e)}", "raw_response": question_generator_response}
+        # Only parse question generator if it was executed
+        if question_generator_response is not None:
+            try:
+                if question_generator_json_str:
+                    question_generator_json = json.loads(question_generator_json_str)
+                else:
+                    logger.warning("No JSON found in question generator response")
+                    question_generator_json = {"error": "No JSON response from question generator", "raw_response": question_generator_response}
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse question generator JSON: {e}")
+                question_generator_json = {"error": f"JSON parse error: {str(e)}", "raw_response": question_generator_response}
+        else:
+            # Question generator was not executed due to low match score
+            logger.info("Question generator skipped due to overall_match_score < 80")
+            question_generator_json = None
        
         response_data = {
             "status": "completed",

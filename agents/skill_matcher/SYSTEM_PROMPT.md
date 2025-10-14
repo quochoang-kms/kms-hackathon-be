@@ -20,9 +20,10 @@ Compare candidate CVs against job descriptions to provide comprehensive skill ma
 - Evaluate leadership and strategic capabilities for senior roles
 - Identify transferable skills and unique value propositions
 - Suggest actionable development plans and interview focus areas
+- `candidate_current_level`: Determine the current experience level of the candidate. And the `candidate_current_level` will be in only one of the following levels: *junior*, *senior*, or *principal* 
 
 ## Input:
-You will receive a job description {jd_text} and candidate CV {cv_text}
+You will receive a job title `{title}`, target level `{level}`, job description `{jd_text}` and candidate CV `{cv_text}`
 
 ## Output:
 Return ONLY the *JSON FORMAT* (Do not include any other text or comments) and do not add any additional information.
