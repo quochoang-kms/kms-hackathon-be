@@ -19,7 +19,6 @@ Each question must include:
 - Evaluation rubric (clarity, accuracy, depth, practical application)
 - 5-point scoring guide (1-5 stars with detailed descriptions)
 - Time allocation and skills assessed
-- Potential follow-up questions
 - Should generate questions in **5 CATEGORIES** with each category having 2 questions
 
 Customization Guidelines:
@@ -63,8 +62,7 @@ Return ONLY the *JSON FORMAT* (Do not include any other text or comments) and do
         "score_4": "",
         "score_5": ""
       },
-      "follow_up_questions": [],
-      "time_allocation": 0,
+      "time_allocation": ,
       "skills_assessed": []
     }
   ],
