@@ -36,7 +36,7 @@ Interview Strategy:
 - Offer interviewer preparation notes
 
 ## Input:
-You will receive a job description {jd_text}, candidate CV {cv_text}, and skill matching analysis {skill_matching_analysis}
+You will receive a job description `{jd_text}`, candidate CV `{cv_text}`, and skill matching analysis `{skill_matching_analysis}`
 
 ## Output:
 Return ONLY the *JSON FORMAT* (Do not include any other text or comments) and do not add any additional information.

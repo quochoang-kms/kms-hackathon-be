@@ -10,6 +10,7 @@ import json
 import logging
 from dotenv import load_dotenv
 from strands.models.openai import OpenAIModel
+from agents import orchestrator
 from utils.extractor import extract_docx_text, extract_pdf_text, process_file
 import uvicorn
 
@@ -59,6 +60,7 @@ bedrock_model = BedrockModel(
     region_name=os.getenv("REGION_NAME"),
 )
 
+# OpenAI Model Config
 openai_model = OpenAIModel(
     client_args={"api_key": os.getenv("OPENAI_API_KEY")},
     model_id="gpt-4.1",
@@ -68,18 +70,6 @@ openai_model = OpenAIModel(
 def create_interview_graph():
     """Create and configure the interview preparation agent graph"""
         
-    # Load system prompt from file
-    system_prompt_path = os.path.join(os.path.dirname(__file__), 'agents/orchestrator/SYSTEM_PROMPT.md')
-    with open(system_prompt_path, 'r') as f:
-        ORCHESTRATOR_PROMPT = f.read()
-
-    
-    orchestrator = Agent(
-        name="ORCHESTRATOR",
-        model=openai_model,
-        system_prompt=ORCHESTRATOR_PROMPT,
-    )
-
     # Initialize GraphBuilder
     builder = GraphBuilder()
 
@@ -93,6 +83,7 @@ def create_interview_graph():
     # Add Edges
     builder.add_edge("ORCHESTRATOR", "JD_ANALYZER")
     builder.add_edge("ORCHESTRATOR", "CV_ANALYZER")
+    builder.add_edge("ORCHESTRATOR", "SKILL_MATCHER")
     builder.add_edge("JD_ANALYZER", "SKILL_MATCHER", condition=is_analyzer_done)
     builder.add_edge("CV_ANALYZER", "SKILL_MATCHER", condition=is_analyzer_done)
     builder.add_edge("SKILL_MATCHER", "QUESTION_GENERATOR", condition=is_matched_skill)

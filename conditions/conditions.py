@@ -3,7 +3,15 @@ from utils.logger import logger
 
 
 def is_matched_skill(state):
-    """ Check if the overall_match_score >= 80."""
+    """
+    Check if skill matching score meets threshold (>=80).
+    
+    Args:
+        state: Workflow state containing SKILL_MATCHER results
+        
+    Returns:
+        bool: True if overall_match_score >= 80, False otherwise
+    """
     import json
     import re
     
@@ -39,7 +47,15 @@ def is_matched_skill(state):
         return False
   
 def is_analyzer_done(state):
-    """ Check if the JD and CV analyzers are done."""
+    """
+    Check if both JD and CV analysis are completed.
+    
+    Args:
+        state: Workflow state containing analyzer results
+        
+    Returns:
+        bool: True if both JD_ANALYZER and CV_ANALYZER are done
+    """
     
     jd_result = state.results.get("JD_ANALYZER")
     cv_result = state.results.get("CV_ANALYZER")
@@ -47,7 +63,15 @@ def is_analyzer_done(state):
     return jd_result is not None and cv_result is not None
 
 def is_skill_matching_done(state):
-    """ Check if the skill matching is completed."""
+    """
+    Check if skill matching process is completed.
+    
+    Args:
+        state: Workflow state containing SKILL_MATCHER results
+        
+    Returns:
+        bool: True if SKILL_MATCHER result exists
+    """
     
     skill_matcher_result = state.results.get("SKILL_MATCHER")
     

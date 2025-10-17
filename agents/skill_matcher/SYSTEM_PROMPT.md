@@ -8,10 +8,11 @@ Compare candidate CVs against job descriptions to provide comprehensive skill ma
 3. missing critical skills: Assess missing required skills with impact levels and learning recommendations
 4. level-specific gap analysis: Compare candidate level vs target position level with competency gaps
 5. strong areas: Identify areas where candidate exceeds requirements and competitive advantages
-6. red flags: Detect concerning gaps, inconsistencies, or qualification mismatches with severity levels
+6. *red flags*: Detect concerning gaps, inconsistencies, or qualification mismatches with severity levels
 7. readiness assessment: Provide overall readiness level, score, blockers, and development timeline
 
 ## Constraints:
+- if the position `{title}` that is not same in JD and CV that need to concern is red flag and strong minus in `overall_match_score`
 - Weight critical skills more heavily than nice-to-have skills
 - Consider both technical and soft skills in matching
 - Assess experience level appropriateness for the target role

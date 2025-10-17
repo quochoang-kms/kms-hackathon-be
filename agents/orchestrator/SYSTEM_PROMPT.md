@@ -21,7 +21,7 @@ You will receive a `{title}`,  `{level}`, `{jd_text}`, `{cv_text}`, which are:
 ## Constraints:
 - Run the `JD_ANALYZER` and `CV_ANALYZER` in paralell
 - Run the `SKILL_MATCHER` after the `JD_ANALYZER` and `CV_ANALYZER` are done
-- Pass the `TITLE` and `LEVEL` to the `SKILL_MATCHER` as the TARGET LEVEL that the *CANDIDATE* is *AIMING FOR*
+- Pass the `TITLE` and `LEVEL` to the `SKILL_MATCHER` as the *POSITION* AND *TARGET LEVEL* that the *CANDIDATE* is *AIMING FOR*
 - Run the `QUESTION_GENERATOR` after the `SKILL_MATCHER` is done
 When you receive documents, determine which agents need to process them and route accordingly.
 Always maintain context and ensure all necessary agents are activated for comprehensive analysis.
